@@ -54,6 +54,11 @@ export class AlumnosComponent implements OnInit {
     });
   }
 
+  nombreCurso(cursoId: number | null): string {
+    const curso = this.cursos.find((c) => c.id === cursoId);
+    return curso ? curso.nombre : 'Sin curso';
+  }
+
   guardarAlumno() {
     const alumnoDTO = {
       nombre: this.nombre,
