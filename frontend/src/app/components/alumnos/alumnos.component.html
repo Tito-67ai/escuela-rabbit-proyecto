@@ -47,7 +47,7 @@
             <th>Nombre</th>
             <th>Apellido</th>
             <th>Documento</th>
-            <th>Curso ID</th>
+            <th>Curso</th>
             <th class="text-center" *ngIf="puedeGestionar">Acciones</th>
           </tr>
         </thead>
@@ -57,7 +57,7 @@
             <td>{{ a.nombre }}</td>
             <td>{{ a.apellido }}</td>
             <td>{{ a.dni }}</td>
-            <td>{{ a.cursoId }}</td>
+            <td>{{ nombreCurso(a.cursoId) }}</td>
             <td class="text-center" *ngIf="puedeGestionar">
               <div class="d-flex justify-content-center gap-1">
                 <button (click)="seleccionarParaEditar(a)" class="btn btn-outline-warning btn-sm">Editar</button>
