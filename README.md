@@ -1,53 +1,72 @@
-# Escuela Rabbit — Sistema de Gestión Escolar
+﻿# Sistema de Gestión Escolar - Backend (Microservicios)
 
-Proyecto full-stack: backend de **microservicios Spring Boot** + frontend **Angular**.
-Arquitectura orientada a microservicios con descubrimiento de servicios, API Gateway y configuración centralizada, protegidos con JWT y control de acceso por roles.
+Sistema distribuido basado en arquitectura de microservicios desarrollado con Java, Spring Boot, Spring Cloud, Docker y persistencia en H2 Database. La seguridad del ecosistema está centralizada mediante autenticación y autorización con JWT.
 
-## Estructura
+---
 
-```
-escuela-rabbit-proyecto/
-├── backend/                      # Microservicios Spring Boot (Java 17+)
-│   ├── eureka-server/            # Servidor de descubrimiento (Eureka) — puerto 8761
-│   ├── config-server/            # Configuración centralizada (Spring Cloud Config) — puerto 8888
-│   ├── gateway-service/          # API Gateway (Spring Cloud Gateway) — puerto 8080
-│   ├── auth-service/             # Autenticación y usuarios (JWT) — puerto 8084
-│   ├── admin-service/            # Gestión de personal — puerto 8083
-│   ├── alumno-service/           # Gestión de alumnos — puerto 8081
-│   └── curso-service/            # Gestión de cursos — puerto 8082
-└── frontend/                     # Aplicación Angular (ng serve — puerto 4200)
-```
+## Arquitectura y Puertos
 
-## Roles
+| Servicio | Puerto | Ruta Gateway | Descripción |
+| :--- | :---: | :---: | :--- |
+| **eureka-server** | `8761` | N/A | Servidor de descubrimiento y registro de servicios |
+| **config-server** | `8888` | N/A | Servidor de configuración centralizada |
+| **gateway-service** | `8080` | `/` | API Gateway de entrada y enrutamiento principal |
+| **alumno-service** | `8081` | `/alumnos/**` | Microservicio de gestión de alumnos |
+| **curso-service** | `8082` | `/cursos/**` | Microservicio de gestión de cursos |
+| **admin-service** | `8083` | `/admin/**` | Microservicio de gestión de personal y administración del colegio |
+| **auth-service** | `8084` | `/auth/**` | Microservicio de autenticación y emisión de JWT |
 
-| Rol | Permisos principales |
-| --- | --- |
-| `ROOT` | Registrar usuarios, gestionar personal y cursos |
-| `ADMINISTRATIVO` | Gestionar personal |
-| `PRECEPTOR` | Registrar alumnos y cursos |
-| `DOCENTE` | Consultas de solo lectura |
-| `DIRECTOR` | Consultas de solo lectura |
+---
 
-Usuarios de prueba (seed): `admin/admin777`, `preceptor/preceptor123`, `docente/docente123`, `director/director123`, `administrativo/administrativo123`.
+## Seguridad y Autenticación (JWT)
 
-## Arranque rápido (backend)
+El sistema implementa un modelo de seguridad por capas con Spring Security y JWT:
 
-Orden de inicio desde `backend/` (cada módulo con `./mvnw.cmd spring-boot:run`):
+1. **Autenticación (Login):** Petición `POST` al endpoint público `/auth/login` a través del API Gateway (`http://localhost:8080/auth/login`).
+2. **Emisión de Token:** El microservicio `auth-service` (puerto 8084) valida credenciales y genera la firma JWT.
+3. **Acceso a Recursos Protegidos:** Las peticiones hacia `/alumnos`, `/cursos` y `/admin` requieren la cabecera HTTP:
+   ```text
+   Authorization: Bearer <TU_TOKEN_JWT>
+Endpoints Principales (API Gateway - Puerto 8080)
+Autenticación (Público): POST http://localhost:8080/auth/login
 
-1. `eureka-server` (8761)
-2. `config-server` (8888)
-3. `auth-service` (8084)
-4. `admin-service` (8083)
-5. `alumno-service` (8081)
-6. `curso-service` (8082)
-7. `gateway-service` (8080)
+Gestión de Alumnos (Protegido): http://localhost:8080/alumnos
 
-Con todo arriba, el front corre con `ng serve` desde `frontend/` y se accede en `http://localhost:4200`.
+Gestión de Cursos (Protegido): http://localhost:8080/cursos
 
-## Documentación de APIs (Swagger UI)
+Gestión de Personal / Admin (Protegido): http://localhost:8080/admin
 
-- Eureka: `http://localhost:8761/swagger-ui/index.html`
-- Config: `http://localhost:8888/swagger-ui/index.html`
-- Gateway (agrega auth + docs por servicio): `http://localhost:8080/swagger-ui.html`
+Orden de Despliegue y Arranque
+eureka-server: Registro de descubrimiento.
 
-Login vía gateway: `POST http://localhost:8080/auth/login` con `{ "username": "...", "password": "..." }` → devuelve `{ token, rol }`. El resto de los endpoints exigen `Authorization: Bearer <token>`.
+config-server: Carga de propiedades centralizadas desde el repositorio Git.
+
+Servicios de Negocio y Seguridad (auth-service, admin-service, alumno-service, curso-service).
+
+gateway-service: Enrutamiento de peticiones externas.
+
+Nota: En la ejecución con Docker Compose, este flujo se gestiona automáticamente mediante depends_on y healthchecks.
+
+Documentación de API (Swagger / OpenAPI)
+Swagger Auth: http://localhost:8084/swagger-ui.html
+
+Swagger Admin / Personal: http://localhost:8083/swagger-ui.html
+
+Swagger Alumnos: http://localhost:8081/swagger-ui.html
+
+Swagger Cursos: http://localhost:8082/swagger-ui.html
+
+Despliegue con Docker Compose en Máquina Virtual (Linux / Ubuntu)
+1. Clonar el repositorio en la Máquina Virtual:
+Bash
+git clone [https://github.com/48115220-sketch/sistema-gestion-escolar-backend.git](https://github.com/48115220-sketch/sistema-gestion-escolar-backend.git)
+cd sistema-gestion-escolar-backend
+2. Levantar la infraestructura completa con Docker Compose:
+Bash
+docker compose up --build
+3. Verificación de servicios en el navegador de la VM:
+Panel Eureka Server: http://localhost:8761
+
+Config Server: http://localhost:8888/alumno-service/default
+
+API Gateway: http://localhost:8080
