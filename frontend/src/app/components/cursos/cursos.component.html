@@ -1,0 +1,76 @@
+<div class="card mb-4" *ngIf="puedeGestionar">
+  <div class="card-body">
+    <h5 class="section-title">
+      <i class="bi bi-journal-text"></i>
+      {{ modoEdicion ? 'Editar Curso' : 'Registrar Curso' }}
+    </h5>
+
+    <div class="row g-2">
+      <div class="col-12 col-md-6">
+        <input type="text" [(ngModel)]="nombre" placeholder="Nombre del Curso" class="form-control">
+      </div>
+      <div class="col-12 col-md-6">
+        <input type="number" [(ngModel)]="docenteId" placeholder="ID del Docente" class="form-control">
+      </div>
+      <div class="col-12 col-md-6">
+        <input type="text" [(ngModel)]="materia" placeholder="Materia" class="form-control">
+      </div>
+      <div class="col-12 col-md-3">
+        <input type="text" [(ngModel)]="horario" placeholder="Horario (ej: 08:00-10:00)" class="form-control">
+      </div>
+      <div class="col-12 col-md-3">
+        <input type="number" [(ngModel)]="cupo" placeholder="Cupo" class="form-control">
+      </div>
+    </div>
+
+    <div class="mt-3 d-flex flex-wrap gap-2">
+      <button (click)="guardarCurso()" class="btn btn-primary">
+        {{ modoEdicion ? 'Guardar Cambios' : 'Registrar Curso' }}
+      </button>
+      <button *ngIf="modoEdicion" (click)="limpiarFormulario()" class="btn btn-outline-secondary">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<div class="card mb-4">
+  <div class="card-body">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+      <h5 class="mb-0">Cursos Habilitados</h5>
+      <span class="badge text-bg-light">{{ cursos.length }}</span>
+    </div>
+
+    <div class="table-responsive" *ngIf="cursos.length > 0">
+      <table class="table align-middle mt-2 mb-0">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Materia</th>
+            <th>Horario</th>
+            <th>Cupo</th>
+            <th>Docente ID</th>
+            <th class="text-center" *ngIf="puedeGestionar">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let c of cursos">
+            <td>{{ c.id }}</td>
+            <td>{{ c.nombre }}</td>
+            <td>{{ c.materia }}</td>
+            <td>{{ c.horario }}</td>
+            <td><span class="badge text-bg-secondary">{{ c.cupo }}</span></td>
+            <td>{{ c.docenteId }}</td>
+            <td class="text-center" *ngIf="puedeGestionar">
+              <div class="d-flex justify-content-center gap-1">
+                <button (click)="seleccionarParaEditar(c)" class="btn btn-outline-warning btn-sm">Editar</button>
+                <button (click)="eliminarCurso(c.id)" class="btn btn-outline-danger btn-sm">Eliminar</button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div *ngIf="cursos.length === 0" class="alert alert-light text-center mt-2 mb-0">No hay cursos disponibles.</div>
+  </div>
+</div>

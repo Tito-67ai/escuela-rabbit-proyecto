@@ -1,0 +1,85 @@
+﻿<div class="card mb-4" *ngIf="puedeGestionar">
+  <div class="card-body">
+    <h5 class="section-title">
+      <i class="bi bi-person-badge"></i>
+      {{ modoEdicion ? 'Editar Personal' : 'Registrar Personal' }}
+    </h5>
+
+    <div class="row g-2">
+      <div class="col-12 col-sm-6 col-md-4">
+        <input type="text" [(ngModel)]="nombre" placeholder="Nombre" class="form-control">
+      </div>
+      <div class="col-12 col-sm-6 col-md-4">
+        <input type="text" [(ngModel)]="apellido" placeholder="Apellido" class="form-control">
+      </div>
+      <div class="col-12 col-sm-6 col-md-4">
+        <input type="text" [(ngModel)]="dni" placeholder="DNI" class="form-control">
+      </div>
+      <div class="col-12 col-sm-6 col-md-4">
+        <input type="number" step="0.01" [(ngModel)]="sueldo" placeholder="Sueldo ($)" class="form-control">
+      </div>
+      <div class="col-12 col-sm-6 col-md-4">
+        <input type="text" [(ngModel)]="cargo" placeholder="Cargo" class="form-control">
+      </div>
+      <div class="col-12 col-sm-6 col-md-4">
+        <select [(ngModel)]="tipo" class="form-select">
+          <option value="DOCENTE">DOCENTE</option>
+          <option value="ADMINISTRATIVO">ADMINISTRATIVO</option>
+          <option value="DIRECTIVO">DIRECTIVO</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="mt-3 d-flex flex-wrap gap-2">
+      <button (click)="guardarPersonal()" [disabled]="cargando" class="btn btn-primary">
+        {{ cargando ? 'Procesando...' : (modoEdicion ? 'Guardar Cambios' : 'Registrar Personal') }}
+      </button>
+      <button *ngIf="modoEdicion" (click)="limpiarFormulario()" [disabled]="cargando" class="btn btn-outline-secondary">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<div class="card mb-4">
+  <div class="card-body">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+      <h5 class="mb-0">Personal Registrado</h5>
+      <span class="badge text-bg-light">{{ personalList.length }}</span>
+    </div>
+
+    <div class="table-responsive" *ngIf="personalList.length > 0">
+      <table class="table align-middle mt-2 mb-0">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Apellido</th>
+            <th>DNI</th>
+            <th>Sueldo</th>
+            <th>Cargo</th>
+            <th>Tipo</th>
+            <th class="text-center" *ngIf="puedeGestionar">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let p of personalList">
+            <td>{{ p.id }}</td>
+            <td>{{ p.nombre }}</td>
+            <td>{{ p.apellido }}</td>
+            <td>{{ p.dni }}</td>
+            <td>${{ p.sueldo }}</td>
+            <td>{{ p.cargo }}</td>
+            <td><span class="badge bg-secondary">{{ p.tipo }}</span></td>
+            <td class="text-center" *ngIf="puedeGestionar">
+              <div class="d-flex justify-content-center gap-1">
+                <button (click)="seleccionarParaEditar(p)" class="btn btn-outline-warning btn-sm">Editar</button>
+                <button (click)="eliminarPersonal(p.id)" class="btn btn-outline-danger btn-sm">Eliminar</button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div *ngIf="personalList.length === 0" class="alert alert-light text-center mt-2 mb-0">Sin personal registrado.</div>
+  </div>
+</div>

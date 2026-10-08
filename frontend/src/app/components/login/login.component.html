@@ -1,0 +1,31 @@
+<div class="login-min">
+  <div class="card login-box shadow">
+    <div class="card-body p-4">
+      <div class="text-center mb-3">
+        <span class="logo-min logo-lg"><i class="bi bi-mortarboard-fill"></i></span>
+        <h4 class="mt-3 mb-1">Iniciar sesión</h4>
+        <p class="text-muted small mb-0">Plataforma de Gestión Escolar</p>
+      </div>
+
+      <div *ngIf="errorLogin" class="alert alert-danger py-2 small text-center mb-3">
+        <i class="bi bi-exclamation-triangle-fill"></i> Usuario o contraseña incorrectos
+      </div>
+
+      <form (ngSubmit)="onLogin()">
+        <div class="mb-3">
+          <label class="form-label small">Usuario</label>
+          <input type="text" [(ngModel)]="credentials.username" name="username" class="form-control" placeholder="Ej: admin" required>
+        </div>
+
+        <div class="mb-4">
+          <label class="form-label small">Contraseña</label>
+          <input type="password" [(ngModel)]="credentials.password" name="password" class="form-control" placeholder="••••••••" required>
+        </div>
+
+        <button type="submit" class="btn btn-primary w-100">
+          <i class="bi bi-box-arrow-in-right"></i> Acceder
+        </button>
+      </form>
+    </div>
+  </div>
+</div>

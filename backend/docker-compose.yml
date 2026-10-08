@@ -1,0 +1,105 @@
+version: '3.8'
+
+services:
+  eureka-server:
+    build: ./eureka-server
+    container_name: eureka-server
+    ports:
+      - "8761:8761"
+    networks:
+      - escuela-network
+
+  config-server:
+    build: ./config-server
+    container_name: config-server
+    ports:
+      - "8888:8888"
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+    depends_on:
+      - eureka-server
+    networks:
+      - escuela-network
+
+  auth-service:
+    build: ./auth-service
+    container_name: auth-service
+    ports:
+      - "8084:8084"
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+    depends_on:
+      - eureka-server
+      - config-server
+    networks:
+      - escuela-network
+
+  admin-service:
+    build: ./admin-service
+    container_name: admin-service
+    ports:
+      - "8083:8083"
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+    depends_on:
+      - eureka-server
+      - config-server
+    networks:
+      - escuela-network
+
+  alumno-service:
+    build: ./alumno-service
+    container_name: alumno-service
+    ports:
+      - "8081:8081"
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+    depends_on:
+      - eureka-server
+      - config-server
+    networks:
+      - escuela-network
+
+  curso-service:
+    build: ./curso-service
+    container_name: curso-service
+    ports:
+      - "8082:8082"
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+    depends_on:
+      - eureka-server
+      - config-server
+    networks:
+      - escuela-network
+
+  gateway-service:
+    build: ./gateway-service
+    container_name: gateway-service
+    ports:
+      - "8080:8080"
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+    depends_on:
+      - eureka-server
+      - config-server
+      - auth-service
+      - admin-service
+      - alumno-service
+      - curso-service
+    networks:
+      - escuela-network
+
+  frontend-escuela:
+    build: ./frontend-escuela
+    container_name: frontend-escuela
+    ports:
+      - "4200:80"
+    depends_on:
+      - gateway-service
+    networks:
+      - escuela-network
+
+networks:
+  escuela-network:
+    driver: bridge
