@@ -2,6 +2,7 @@ package com.escuela.curso_service.controller;
 
 import com.escuela.curso_service.dto.CursoAltaDTO;
 import com.escuela.curso_service.dto.CursoConDocenteDTO;
+import com.escuela.curso_service.error.RecursoNoEncontradoException;
 import com.escuela.curso_service.service.CursoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -27,7 +28,7 @@ public class CursoController {
     public ResponseEntity<CursoConDocenteDTO> obtenerPorId(@PathVariable Integer id) {
         CursoConDocenteDTO curso = cursoService.obtenerPorId(id);
         if (curso == null) {
-            return ResponseEntity.notFound().build();
+            throw new RecursoNoEncontradoException("No existe el curso con id " + id);
         }
         return ResponseEntity.ok(curso);
     }
@@ -44,7 +45,7 @@ public class CursoController {
     public ResponseEntity<CursoConDocenteDTO> actualizar(@PathVariable Integer id, @RequestBody CursoAltaDTO altaDTO) {
         CursoConDocenteDTO actualizado = cursoService.actualizar(id, altaDTO);
         if (actualizado == null) {
-            return ResponseEntity.notFound().build();
+            throw new RecursoNoEncontradoException("No existe el curso con id " + id);
         }
         return ResponseEntity.ok(actualizado);
     }
@@ -52,9 +53,9 @@ public class CursoController {
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAnyRole('ROOT', 'PRECEPTOR')")
     public ResponseEntity<Void> eliminar(@PathVariable Integer id) {
-        if (cursoService.eliminar(id)) {
-            return ResponseEntity.noContent().build();
+        if (!cursoService.eliminar(id)) {
+            throw new RecursoNoEncontradoException("No existe el curso con id " + id);
         }
-        return ResponseEntity.notFound().build();
+        return ResponseEntity.noContent().build();
     }
 }
