@@ -1,9 +1,14 @@
 package com.escuela.alumno_service.service;
 
+import com.escuela.alumno_service.config.RabbitConfig;
 import com.escuela.alumno_service.dto.AlumnoAltaDTO;
 import com.escuela.alumno_service.dto.AlumnoConCursoDTO;
 import com.escuela.alumno_service.entidad.Alumno;
+import com.escuela.alumno_service.event.AlumnoInscriptoEvent;
 import com.escuela.alumno_service.repository.AlumnoRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -13,8 +18,13 @@ import java.util.stream.Collectors;
 @Service
 public class AlumnoServiceImpl implements AlumnoService {
 
+    private static final Logger log = LoggerFactory.getLogger(AlumnoServiceImpl.class);
+
     @Autowired
     private AlumnoRepository alumnoRepository;
+
+    @Autowired
+    private RabbitTemplate rabbitTemplate;
 
     @Override
     public List<AlumnoConCursoDTO> obtenerTodos() {
@@ -40,7 +50,24 @@ public class AlumnoServiceImpl implements AlumnoService {
         alumno.setCursoId(altaDTO.cursoId());
 
         Alumno guardado = alumnoRepository.save(alumno);
+        publicarInscripcion(guardado);
         return convertirAConCursoDTO(guardado);
+    }
+
+    private void publicarInscripcion(Alumno alumno) {
+        if (alumno.getCursoId() == null) {
+            return;
+        }
+        try {
+            AlumnoInscriptoEvent evento = new AlumnoInscriptoEvent(
+                    alumno.getId(), alumno.getNombre(), alumno.getApellido(), alumno.getCursoId());
+            rabbitTemplate.convertAndSend(RabbitConfig.EXCHANGE, RabbitConfig.ROUTING_KEY_INSCRIPCION, evento);
+            log.info("Evento de inscripcion publicado para el alumno {} en el curso {}",
+                    alumno.getId(), alumno.getCursoId());
+        } catch (Exception e) {
+            log.warn("No se pudo publicar el evento de inscripcion del alumno {}: {}",
+                    alumno.getId(), e.getMessage());
+        }
     }
 
     @Override
