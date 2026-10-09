@@ -1,6 +1,9 @@
 package com.escuela.auth.service;
 
 import com.escuela.auth.dto.*;
+import com.escuela.auth.error.CredencialesInvalidasException;
+import com.escuela.auth.error.TokenInvalidoException;
+import com.escuela.auth.error.UsuarioYaExisteException;
 import com.escuela.auth.model.RefreshToken;
 import com.escuela.auth.model.Rol;
 import com.escuela.auth.model.Usuario;
@@ -31,7 +34,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public String registrar(RegisterRequest request) {
         if (usuarioRepository.existsByNombreUsuario(request.nombreUsuario())) {
-            throw new IllegalArgumentException("El nombre de usuario ya existe");
+            throw new UsuarioYaExisteException("El nombre de usuario ya existe");
         }
 
         Rol rol = request.rol() != null ? request.rol() : Rol.DOCENTE;
@@ -50,13 +53,13 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public LoginResponse login(LoginRequest request) {
         if (request == null || request.nombreUsuario() == null || request.clave() == null) {
-            throw new IllegalArgumentException("Credenciales invalidas");
+            throw new CredencialesInvalidasException("Credenciales invalidas");
         }
 
         Usuario usuario = usuarioRepository.findByNombreUsuario(request.nombreUsuario()).orElse(null);
 
         if (usuario == null || usuario.getClave() == null || !passwordEncoder.matches(request.clave(), usuario.getClave())) {
-            throw new IllegalArgumentException("Credenciales invalidas");
+            throw new CredencialesInvalidasException("Credenciales invalidas");
         }
 
         String jwtToken = jwtService.generarToken(usuario.getNombreUsuario(), usuario.getRol());
@@ -68,13 +71,13 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public LoginResponse refreshToken(RefreshTokenRequest request) {
         if (request == null || request.refreshToken() == null) {
-            throw new IllegalArgumentException("Refresh Token no valido");
+            throw new TokenInvalidoException("Refresh Token no valido");
         }
 
         Optional<RefreshToken> tokenOptional = refreshTokenService.findByToken(request.refreshToken());
 
         if (tokenOptional.isEmpty()) {
-            throw new IllegalArgumentException("Refresh Token no valido");
+            throw new TokenInvalidoException("Refresh Token no valido");
         }
 
         RefreshToken refreshToken = refreshTokenService.verificarExpiracion(tokenOptional.get());

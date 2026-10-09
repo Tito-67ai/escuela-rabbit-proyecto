@@ -2,6 +2,7 @@ package com.escuela.alumno_service.controller;
 
 import com.escuela.alumno_service.dto.AlumnoAltaDTO;
 import com.escuela.alumno_service.dto.AlumnoConCursoDTO;
+import com.escuela.alumno_service.error.RecursoNoEncontradoException;
 import com.escuela.alumno_service.service.AlumnoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -26,10 +27,10 @@ public class AlumnoController {
     @GetMapping("/{id}")
     public ResponseEntity<AlumnoConCursoDTO> obtenerPorId(@PathVariable Integer id) {
         AlumnoConCursoDTO alumno = alumnoService.obtenerPorId(id);
-        if (alumno != null) {
-            return ResponseEntity.ok(alumno);
+        if (alumno == null) {
+            throw new RecursoNoEncontradoException("No existe el alumno con id " + id);
         }
-        return ResponseEntity.notFound().build();
+        return ResponseEntity.ok(alumno);
     }
 
     @PostMapping
@@ -43,18 +44,18 @@ public class AlumnoController {
     @PreAuthorize("hasRole('PRECEPTOR')")
     public ResponseEntity<AlumnoConCursoDTO> actualizar(@PathVariable Integer id, @RequestBody AlumnoAltaDTO altaDTO) {
         AlumnoConCursoDTO actualizado = alumnoService.actualizar(id, altaDTO);
-        if (actualizado != null) {
-            return ResponseEntity.ok(actualizado);
+        if (actualizado == null) {
+            throw new RecursoNoEncontradoException("No existe el alumno con id " + id);
         }
-        return ResponseEntity.notFound().build();
+        return ResponseEntity.ok(actualizado);
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('PRECEPTOR')")
     public ResponseEntity<Void> eliminar(@PathVariable Integer id) {
-        if (alumnoService.eliminar(id)) {
-            return ResponseEntity.noContent().build();
+        if (!alumnoService.eliminar(id)) {
+            throw new RecursoNoEncontradoException("No existe el alumno con id " + id);
         }
-        return ResponseEntity.notFound().build();
+        return ResponseEntity.noContent().build();
     }
 }

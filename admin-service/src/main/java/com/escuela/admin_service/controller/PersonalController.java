@@ -2,6 +2,7 @@ package com.escuela.admin_service.controller;
 
 import com.escuela.admin_service.dto.PersonalAltaDTO;
 import com.escuela.admin_service.dto.PersonalDTO;
+import com.escuela.admin_service.error.RecursoNoEncontradoException;
 import com.escuela.admin_service.service.PersonalService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -27,7 +28,7 @@ public class PersonalController {
     public ResponseEntity<PersonalDTO> obtenerPorId(@PathVariable Integer id) {
         PersonalDTO docente = docenteService.obtenerPorId(id);
         if (docente == null) {
-            return ResponseEntity.notFound().build();
+            throw new RecursoNoEncontradoException("No existe el personal con id " + id);
         }
         return ResponseEntity.ok(docente);
     }
@@ -44,7 +45,7 @@ public class PersonalController {
     public ResponseEntity<PersonalDTO> actualizar(@PathVariable Integer id, @RequestBody PersonalAltaDTO altaDTO) {
         PersonalDTO actualizado = docenteService.actualizar(id, altaDTO);
         if (actualizado == null) {
-            return ResponseEntity.notFound().build();
+            throw new RecursoNoEncontradoException("No existe el personal con id " + id);
         }
         return ResponseEntity.ok(actualizado);
     }
@@ -52,9 +53,9 @@ public class PersonalController {
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAnyRole('ROOT', 'ADMINISTRATIVO')")
     public ResponseEntity<Void> eliminar(@PathVariable Integer id) {
-        if (docenteService.eliminar(id)) {
-            return ResponseEntity.noContent().build();
+        if (!docenteService.eliminar(id)) {
+            throw new RecursoNoEncontradoException("No existe el personal con id " + id);
         }
-        return ResponseEntity.notFound().build();
+        return ResponseEntity.noContent().build();
     }
 }
