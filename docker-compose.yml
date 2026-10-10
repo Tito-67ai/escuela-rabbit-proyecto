@@ -9,7 +9,7 @@
 # Notas importantes para que funcione dentro de Docker:
 #  - Cada servicio tiene `spring.config.import=optional:configserver:` y `spring.cloud.config.uri=http://localhost:8888/`.
 #    Aca se sobreescribe el uri con SPRING_CLOUD_CONFIG_URI apuntando al contenedor config-server.
-#  - La config de rabbit (escuela-config) usa host=localhost. Se sobreescribe con SPRING_RABBITMQ_HOST=rabbitmq.
+#  - La config de rabbit (rama config-repo) usa host=localhost. Se sobreescribe con SPRING_RABBITMQ_HOST=rabbitmq.
 #  - El gateway tiene rutas fijas a localhost:808x. Se sobreescriben por variables de entorno
 #    apuntando a los nombres de contenedor.
 #  - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true hace que los servicios (y el Feign entre ellos)
