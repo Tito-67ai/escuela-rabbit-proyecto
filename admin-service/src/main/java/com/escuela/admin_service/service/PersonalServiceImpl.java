@@ -63,11 +63,24 @@ public class PersonalServiceImpl implements PersonalService {
 
     @Override
     public boolean eliminar(Integer id) {
-        if (docenteRepository.existsById(id)) {
-            docenteRepository.deleteById(id);
-            return true;
-        }
-        return false;
+        return docenteRepository.findById(id)
+                .map(personal -> {
+                    personal.setActivo(false);
+                    docenteRepository.save(personal);
+                    return true;
+                })
+                .orElse(false);
+    }
+
+    @Override
+    public boolean activar(Integer id) {
+        return docenteRepository.findById(id)
+                .map(personal -> {
+                    personal.setActivo(true);
+                    docenteRepository.save(personal);
+                    return true;
+                })
+                .orElse(false);
     }
 
     private PersonalDTO convertirADTO(Personal personal) {
@@ -78,7 +91,8 @@ public class PersonalServiceImpl implements PersonalService {
                 personal.getDni(),
                 personal.getSueldo(),
                 personal.getCargo(),
-                personal.getTipo()
+                personal.getTipo(),
+                personal.getActivo()
         );
     }
 }

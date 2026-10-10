@@ -19,6 +19,8 @@ public class Personal {
     @Enumerated(EnumType.STRING)
     private TipoPersona tipo;
 
+    private Boolean activo = true;
+
     public Personal() {}
 
     public Personal(Integer id, String nombre, String apellido, String dni, Float sueldo, String cargo, TipoPersona tipo) {
@@ -51,4 +53,7 @@ public class Personal {
 
     public TipoPersona getTipo() { return tipo; }
     public void setTipo(TipoPersona tipo) { this.tipo = tipo; }
+
+    public Boolean getActivo() { return activo; }
+    public void setActivo(Boolean activo) { this.activo = activo; }
 }

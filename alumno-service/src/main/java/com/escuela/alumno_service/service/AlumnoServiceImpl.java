@@ -94,11 +94,24 @@ public class AlumnoServiceImpl implements AlumnoService {
 
     @Override
     public boolean eliminar(Integer id) {
-        if (alumnoRepository.existsById(id)) {
-            alumnoRepository.deleteById(id);
-            return true;
-        }
-        return false;
+        return alumnoRepository.findById(id)
+                .map(alumno -> {
+                    alumno.setActivo(false);
+                    alumnoRepository.save(alumno);
+                    return true;
+                })
+                .orElse(false);
+    }
+
+    @Override
+    public boolean activar(Integer id) {
+        return alumnoRepository.findById(id)
+                .map(alumno -> {
+                    alumno.setActivo(true);
+                    alumnoRepository.save(alumno);
+                    return true;
+                })
+                .orElse(false);
     }
 
     private AlumnoConCursoDTO convertirAConCursoDTO(Alumno alumno) {
@@ -108,6 +121,7 @@ public class AlumnoServiceImpl implements AlumnoService {
         dto.setApellido(alumno.getApellido());
         dto.setDni(alumno.getDni());
         dto.setCursoId(alumno.getCursoId());
+        dto.setActivo(alumno.getActivo());
         dto.setCurso(obtenerCurso(alumno.getCursoId()));
         return dto;
     }

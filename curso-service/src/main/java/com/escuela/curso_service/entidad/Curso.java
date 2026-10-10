@@ -16,6 +16,7 @@ public class Curso {
     private Integer cupo;
     private String materia;
     private String horario;
+    private Boolean activo = true;
 
     public Curso() {}
 
@@ -45,4 +46,7 @@ public class Curso {
 
     public String getHorario() { return horario; }
     public void setHorario(String horario) { this.horario = horario; }
+
+    public Boolean getActivo() { return activo; }
+    public void setActivo(Boolean activo) { this.activo = activo; }
 }

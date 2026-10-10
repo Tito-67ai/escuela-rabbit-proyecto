@@ -15,6 +15,7 @@ public class Alumno {
     private String apellido;
     private String dni;
     private Integer cursoId; 
+    private Boolean activo = true;
 
     public Alumno() {}
 
@@ -34,10 +35,13 @@ public class Alumno {
 
     public String getApellido() { return apellido; }
     public void setApellido(String apellido) { this.apellido = apellido; }
-    
+
     public String getDni() { return dni; }
     public void setDni(String dni) { this.dni = dni; }
 
     public Integer getCursoId() { return cursoId; }
     public void setCursoId(Integer cursoId) { this.cursoId = cursoId; }
+
+    public Boolean getActivo() { return activo; }
+    public void setActivo(Boolean activo) { this.activo = activo; }
 }

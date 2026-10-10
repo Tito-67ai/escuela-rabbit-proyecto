@@ -10,4 +10,5 @@ public interface PersonalService {
     PersonalDTO guardar(PersonalAltaDTO altaDTO);
     PersonalDTO actualizar(Integer id, PersonalAltaDTO altaDTO);
     boolean eliminar(Integer id);
+    boolean activar(Integer id);
 }

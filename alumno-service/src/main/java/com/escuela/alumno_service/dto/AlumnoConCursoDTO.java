@@ -14,4 +14,5 @@ public class AlumnoConCursoDTO {
     private String dni;
     private Integer cursoId;
     private CursoDTO curso;
+    private Boolean activo;
 }

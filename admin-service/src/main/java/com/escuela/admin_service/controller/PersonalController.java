@@ -59,4 +59,13 @@ public class PersonalController {
         }
         return ResponseEntity.noContent().build();
     }
+
+    @PutMapping("/{id}/activar")
+    @PreAuthorize("hasAnyRole('ROOT', 'ADMINISTRATIVO')")
+    public ResponseEntity<Void> activar(@PathVariable Integer id) {
+        if (!docenteService.activar(id)) {
+            throw new RecursoNoEncontradoException("No existe el personal con id " + id);
+        }
+        return ResponseEntity.noContent().build();
+    }
 }
