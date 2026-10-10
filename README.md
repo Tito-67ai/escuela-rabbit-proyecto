@@ -71,7 +71,7 @@ Abrir `http://localhost:4200` y entrar con alguno de los usuarios de prueba. El 
 
 Para bajar todo: `docker compose down`.
 
-Cada servicio toma su configuración del repositorio `escuela-config` a través del Config Server (dentro de Docker, la URL del config-server se pasa por variable de entorno). Requiere conexión a Internet la primera vez (baja dependencias de Maven/npm y la config).
+Cada servicio toma su configuración de la rama `config-repo` de este mismo repositorio a través del Config Server (dentro de Docker, la URL del config-server se pasa por variable de entorno). Requiere conexión a Internet la primera vez (baja dependencias de Maven/npm y la config).
 
 ### Mensajería (RabbitMQ)
 

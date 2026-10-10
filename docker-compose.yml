@@ -14,7 +14,7 @@
 #  - Los servicios usan `spring.config.import=optional:configserver:` con
 #    `spring.cloud.config.uri=http://localhost:8888/`. Aca se sobreescribe el uri
 #    con SPRING_CLOUD_CONFIG_URI apuntando al contenedor config-server.
-#  - La config de rabbit (repo escuela-config) usa host=localhost; se sobreescribe
+#  - La config de rabbit (rama config-repo) usa host=localhost; se sobreescribe
 #    con SPRING_RABBITMQ_HOST=rabbitmq.
 #  - El gateway tiene rutas fijas a localhost:808x; se sobreescriben por variables
 #    de entorno apuntando a los nombres de contenedor.
