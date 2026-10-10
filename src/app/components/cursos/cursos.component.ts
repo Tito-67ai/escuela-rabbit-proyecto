@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { ApiService } from '../../services/api.service';
 
 @Component({
   selector: 'app-cursos',
@@ -17,10 +18,12 @@ export class CursosComponent implements OnInit {
   cupo: number | null = null; 
 
   modoEdicion: boolean = false;
+  mensajeExito: string = '';
+  mensajeError: string = '';
 
   private apiUrl = 'http://localhost:8080/cursos';
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private apiService: ApiService) {}
 
   ngOnInit(): void {
     this.cargarCursos();
@@ -42,7 +45,10 @@ export class CursosComponent implements OnInit {
   cargarCursos() {
     this.http.get<any[]>(this.apiUrl, { headers: this.getHeaders() }).subscribe({
       next: (data) => this.cursos = data,
-      error: (err) => console.error('Error al cargar cursos', err)
+      error: (err) => {
+        console.error('Error al cargar cursos', err);
+        this.mensajeError = this.apiService.mensajeError(err);
+      }
     });
   }
 
@@ -55,21 +61,32 @@ export class CursosComponent implements OnInit {
       cupo: this.cupo
     };
 
+    this.mensajeExito = '';
+    this.mensajeError = '';
+
     if (this.modoEdicion && this.idSeleccionado !== null) {
       this.http.put(`${this.apiUrl}/${this.idSeleccionado}`, cursoDTO, { headers: this.getHeaders() }).subscribe({
         next: () => {
+          this.mensajeExito = 'Curso actualizado correctamente.';
           this.cargarCursos();
           this.limpiarFormulario();
         },
-        error: (err) => console.error('Error al actualizar curso', err)
+        error: (err) => {
+          console.error('Error al actualizar curso', err);
+          this.mensajeError = this.apiService.mensajeError(err);
+        }
       });
     } else {
       this.http.post(this.apiUrl, cursoDTO, { headers: this.getHeaders() }).subscribe({
         next: () => {
+          this.mensajeExito = 'Curso registrado correctamente.';
           this.cargarCursos();
           this.limpiarFormulario();
         },
-        error: (err) => console.error('Error al crear curso', err)
+        error: (err) => {
+          console.error('Error al crear curso', err);
+          this.mensajeError = this.apiService.mensajeError(err);
+        }
       });
     }
   }
@@ -86,9 +103,17 @@ export class CursosComponent implements OnInit {
 
   eliminarCurso(id: number) {
     if (confirm('¿Eliminar curso?')) {
+      this.mensajeExito = '';
+      this.mensajeError = '';
       this.http.delete(`${this.apiUrl}/${id}`, { headers: this.getHeaders() }).subscribe({
-        next: () => this.cargarCursos(),
-        error: (err) => console.error('Error al eliminar curso', err)
+        next: () => {
+          this.mensajeExito = 'Curso eliminado correctamente.';
+          this.cargarCursos();
+        },
+        error: (err) => {
+          console.error('Error al eliminar curso', err);
+          this.mensajeError = this.apiService.mensajeError(err);
+        }
       });
     }
   }

@@ -20,6 +20,8 @@ export class PersonalComponent implements OnInit {
 
   modoEdicion: boolean = false;
   cargando: boolean = false;
+  mensajeExito: string = '';
+  mensajeError: string = '';
 
   private apiUrl = 'http://localhost:8080/admin/personal';
 
@@ -53,13 +55,17 @@ export class PersonalComponent implements OnInit {
   cargarPersonal() {
     this.http.get<any[]>(this.apiUrl, { headers: this.getHeaders() }).subscribe({
       next: (data) => this.personalList = data,
-      error: (err) => console.error('Error al cargar personal', err)
+      error: (err) => {
+        console.error('Error al cargar personal', err);
+        this.mensajeError = this.apiService.mensajeError(err);
+      }
     });
   }
 
   guardarPersonal() {
     if (!this.nombre.trim() || !this.apellido.trim() || !this.dni.trim()) {
-      alert('Por favor complete los campos obligatorios (Nombre, Apellido y DNI).');
+      this.mensajeExito = '';
+      this.mensajeError = 'Por favor complete los campos obligatorios (Nombre, Apellido y DNI).';
       return;
     }
 
@@ -81,28 +87,34 @@ export class PersonalComponent implements OnInit {
     };
 
     this.cargando = true;
+    this.mensajeExito = '';
+    this.mensajeError = '';
 
     if (this.modoEdicion && this.idSeleccionado !== null) {
       this.http.put(`${this.apiUrl}/${this.idSeleccionado}`, docenteDTO, { headers: this.getHeaders() }).subscribe({
         next: () => {
+          this.mensajeExito = 'Personal actualizado correctamente.';
           this.cargarPersonal();
           this.limpiarFormulario();
           this.cargando = false;
         },
         error: (err) => {
           console.error('Error al actualizar personal', err);
+          this.mensajeError = this.apiService.mensajeError(err);
           this.cargando = false;
         }
       });
     } else {
       this.http.post(this.apiUrl, docenteDTO, { headers: this.getHeaders() }).subscribe({
         next: () => {
+          this.mensajeExito = 'Personal registrado correctamente.';
           this.cargarPersonal();
           this.limpiarFormulario();
           this.cargando = false;
         },
         error: (err) => {
           console.error('Error al crear personal', err);
+          this.mensajeError = this.apiService.mensajeError(err);
           this.cargando = false;
         }
       });
@@ -122,9 +134,17 @@ export class PersonalComponent implements OnInit {
 
   eliminarPersonal(id: number) {
     if (confirm('¿Eliminar este registro de personal?')) {
+      this.mensajeExito = '';
+      this.mensajeError = '';
       this.http.delete(`${this.apiUrl}/${id}`, { headers: this.getHeaders() }).subscribe({
-        next: () => this.cargarPersonal(),
-        error: (err) => console.error('Error al eliminar personal', err)
+        next: () => {
+          this.mensajeExito = 'Personal eliminado correctamente.';
+          this.cargarPersonal();
+        },
+        error: (err) => {
+          console.error('Error al eliminar personal', err);
+          this.mensajeError = this.apiService.mensajeError(err);
+        }
       });
     }
   }
