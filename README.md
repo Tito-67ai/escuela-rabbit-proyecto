@@ -10,8 +10,8 @@ Interfaz web cliente desarrollada con Angular que consume la API del sistema dis
 ## Despliegue con Docker (Linux / Ubuntu VM)
 
 1. Clonar el repositorio en la Máquina Virtual:
-   git clone https://github.com/48115220-sketch/sistema-gestion-escolar-frontend.git
-   cd sistema-gestion-escolar-frontend
+   git clone https://github.com/Tito-67ai/escuela-rabbit-proyecto.git
+   cd escuela-rabbit-proyecto
 
 2. Levantar el contenedor Nginx en la VM:
    docker compose up --build
