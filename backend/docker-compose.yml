@@ -1,11 +1,57 @@
-version: '3.8'
+# Docker Compose propio del proyecto Escuela (backend + RabbitMQ).
+#
+# Levanta toda la infraestructura y los microservicios en una red interna.
+# El frontend NO se incluye aca: se corre aparte con `ng serve` (o su propio Dockerfile).
+#
+# Orden de arranque: rabbitmq + eureka -> config-server -> microservicios -> gateway.
+# Los servicios esperan a que eureka/config-server esten "healthy" antes de iniciar.
+#
+# Notas importantes para que funcione dentro de Docker:
+#  - Cada servicio tiene `spring.config.import=optional:configserver:` y `spring.cloud.config.uri=http://localhost:8888/`.
+#    Aca se sobreescribe el uri con SPRING_CLOUD_CONFIG_URI apuntando al contenedor config-server.
+#  - La config de rabbit (escuela-config) usa host=localhost. Se sobreescribe con SPRING_RABBITMQ_HOST=rabbitmq.
+#  - El gateway tiene rutas fijas a localhost:808x. Se sobreescriben por variables de entorno
+#    apuntando a los nombres de contenedor.
+#  - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true hace que los servicios (y el Feign entre ellos)
+#    se ubiquen por IP de contenedor en vez de por hostname no resoluble.
 
 services:
+
+  # ---------------------------------------------------------------------------
+  # Infraestructura
+  # ---------------------------------------------------------------------------
+
+  rabbitmq:
+    image: rabbitmq:3.13-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"    # AMQP
+      - "15672:15672"  # Consola web (guest/guest)
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+    restart: unless-stopped
+    networks:
+      - escuela-network
+
   eureka-server:
     build: ./eureka-server
     container_name: eureka-server
     ports:
       - "8761:8761"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:8761/ || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 40
+      start_period: 30s
+    restart: unless-stopped
     networks:
       - escuela-network
 
@@ -15,22 +61,40 @@ services:
     ports:
       - "8888:8888"
     environment:
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: "http://eureka-server:8761/eureka/"
+      EUREKA_INSTANCE_PREFER_IP_ADDRESS: "true"
     depends_on:
-      - eureka-server
+      eureka-server:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null \"http://configuser:configpass123@127.0.0.1:8888/application/default\" || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 40
+      start_period: 45s
+    restart: unless-stopped
     networks:
       - escuela-network
+
+  # ---------------------------------------------------------------------------
+  # Microservicios de negocio
+  # ---------------------------------------------------------------------------
 
   auth-service:
     build: ./auth-service
     container_name: auth-service
     ports:
       - "8084:8084"
-    environment:
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+    environment: &service-env
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: "http://eureka-server:8761/eureka/"
+      EUREKA_INSTANCE_PREFER_IP_ADDRESS: "true"
+      SPRING_CLOUD_CONFIG_URI: "http://config-server:8888/"
     depends_on:
-      - eureka-server
-      - config-server
+      eureka-server:
+        condition: service_healthy
+      config-server:
+        condition: service_healthy
+    restart: unless-stopped
     networks:
       - escuela-network
 
@@ -40,10 +104,13 @@ services:
     ports:
       - "8083:8083"
     environment:
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      <<: *service-env
     depends_on:
-      - eureka-server
-      - config-server
+      eureka-server:
+        condition: service_healthy
+      config-server:
+        condition: service_healthy
+    restart: unless-stopped
     networks:
       - escuela-network
 
@@ -53,10 +120,16 @@ services:
     ports:
       - "8081:8081"
     environment:
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      <<: *service-env
+      SPRING_RABBITMQ_HOST: rabbitmq
     depends_on:
-      - eureka-server
-      - config-server
+      eureka-server:
+        condition: service_healthy
+      config-server:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
     networks:
       - escuela-network
 
@@ -66,10 +139,16 @@ services:
     ports:
       - "8082:8082"
     environment:
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      <<: *service-env
+      SPRING_RABBITMQ_HOST: rabbitmq
     depends_on:
-      - eureka-server
-      - config-server
+      eureka-server:
+        condition: service_healthy
+      config-server:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
     networks:
       - escuela-network
 
@@ -79,24 +158,27 @@ services:
     ports:
       - "8080:8080"
     environment:
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      <<: *service-env
+      # Rutas del gateway apuntando a los contenedores (reemplazan las de localhost del application.yml/config).
+      SPRING_CLOUD_GATEWAY_ROUTES_0_ID: auth-service
+      SPRING_CLOUD_GATEWAY_ROUTES_0_URI: "http://auth-service:8084"
+      SPRING_CLOUD_GATEWAY_ROUTES_0_PREDICATES_0: "Path=/auth/**"
+      SPRING_CLOUD_GATEWAY_ROUTES_1_ID: admin-service
+      SPRING_CLOUD_GATEWAY_ROUTES_1_URI: "http://admin-service:8083"
+      SPRING_CLOUD_GATEWAY_ROUTES_1_PREDICATES_0: "Path=/auth-admin/**"
+      SPRING_CLOUD_GATEWAY_ROUTES_1_PREDICATES_1: "Path=/admin/**"
+      SPRING_CLOUD_GATEWAY_ROUTES_2_ID: alumno-service
+      SPRING_CLOUD_GATEWAY_ROUTES_2_URI: "http://alumno-service:8081"
+      SPRING_CLOUD_GATEWAY_ROUTES_2_PREDICATES_0: "Path=/alumnos/**"
+      SPRING_CLOUD_GATEWAY_ROUTES_3_ID: curso-service
+      SPRING_CLOUD_GATEWAY_ROUTES_3_URI: "http://curso-service:8082"
+      SPRING_CLOUD_GATEWAY_ROUTES_3_PREDICATES_0: "Path=/cursos/**"
     depends_on:
-      - eureka-server
-      - config-server
-      - auth-service
-      - admin-service
-      - alumno-service
-      - curso-service
-    networks:
-      - escuela-network
-
-  frontend-escuela:
-    build: ./frontend-escuela
-    container_name: frontend-escuela
-    ports:
-      - "4200:80"
-    depends_on:
-      - gateway-service
+      eureka-server:
+        condition: service_healthy
+      config-server:
+        condition: service_healthy
+    restart: unless-stopped
     networks:
       - escuela-network
 
