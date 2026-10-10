@@ -59,4 +59,13 @@ public class CursoController {
         }
         return ResponseEntity.noContent().build();
     }
+
+    @PutMapping("/{id}/activar")
+    @PreAuthorize("hasAnyRole('ROOT', 'PRECEPTOR')")
+    public ResponseEntity<Void> activar(@PathVariable Integer id) {
+        if (!cursoService.activar(id)) {
+            throw new RecursoNoEncontradoException("No existe el curso con id " + id);
+        }
+        return ResponseEntity.noContent().build();
+    }
 }

@@ -116,20 +116,35 @@ export class AlumnosComponent implements OnInit {
   }
 
   eliminarAlumno(id: number) {
-    if (confirm('¿Eliminar alumno?')) {
+    if (confirm('¿Dar de baja al alumno?')) {
       this.mensajeExito = '';
       this.mensajeError = '';
       this.http.delete(`${this.apiUrlAlumnos}/${id}`, { headers: this.getHeaders() }).subscribe({
         next: () => {
-          this.mensajeExito = 'Alumno eliminado correctamente.';
+          this.mensajeExito = 'Alumno dado de baja.';
           this.cargarAlumnos();
         },
         error: (err) => {
-          console.error('Error al eliminar alumno', err);
+          console.error('Error al dar de baja alumno', err);
           this.mensajeError = this.apiService.mensajeError(err);
         }
       });
     }
+  }
+
+  activarAlumno(id: number) {
+    this.mensajeExito = '';
+    this.mensajeError = '';
+    this.http.put(`${this.apiUrlAlumnos}/${id}/activar`, {}, { headers: this.getHeaders() }).subscribe({
+      next: () => {
+        this.mensajeExito = 'Alumno activado correctamente.';
+        this.cargarAlumnos();
+      },
+      error: (err) => {
+        console.error('Error al activar alumno', err);
+        this.mensajeError = this.apiService.mensajeError(err);
+      }
+    });
   }
 
   limpiarFormulario() {

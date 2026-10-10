@@ -15,4 +15,6 @@ public interface AlumnoService {
     AlumnoConCursoDTO actualizar(Integer id, AlumnoAltaDTO altaDTO);
     
     boolean eliminar(Integer id);
+
+    boolean activar(Integer id);
 }

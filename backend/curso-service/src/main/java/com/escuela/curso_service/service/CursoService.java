@@ -11,4 +11,5 @@ public interface CursoService {
     CursoConDocenteDTO guardar(CursoAltaDTO altaDTO);
     CursoConDocenteDTO actualizar(Integer id, CursoAltaDTO altaDTO);
     boolean eliminar(Integer id);
+    boolean activar(Integer id);
 }

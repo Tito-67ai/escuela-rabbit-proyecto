@@ -67,6 +67,7 @@
             <th>Sueldo</th>
             <th>Cargo</th>
             <th>Tipo</th>
+            <th>Estado</th>
             <th class="text-center" *ngIf="puedeGestionar">Acciones</th>
           </tr>
         </thead>
@@ -79,10 +80,15 @@
             <td>${{ p.sueldo }}</td>
             <td>{{ p.cargo }}</td>
             <td><span class="badge bg-secondary">{{ p.tipo }}</span></td>
+            <td>
+              <span *ngIf="p.activo" class="badge text-bg-success">Activo</span>
+              <span *ngIf="!p.activo" class="badge text-bg-secondary">Baja</span>
+            </td>
             <td class="text-center" *ngIf="puedeGestionar">
               <div class="d-flex justify-content-center gap-1">
-                <button (click)="seleccionarParaEditar(p)" class="btn btn-outline-warning btn-sm">Editar</button>
-                <button (click)="eliminarPersonal(p.id)" class="btn btn-outline-danger btn-sm">Eliminar</button>
+                <button *ngIf="p.activo" (click)="seleccionarParaEditar(p)" class="btn btn-outline-warning btn-sm">Editar</button>
+                <button *ngIf="p.activo" (click)="eliminarPersonal(p.id)" class="btn btn-outline-danger btn-sm">Dar de baja</button>
+                <button *ngIf="!p.activo" (click)="activarPersonal(p.id)" class="btn btn-outline-success btn-sm">Activar</button>
               </div>
             </td>
           </tr>

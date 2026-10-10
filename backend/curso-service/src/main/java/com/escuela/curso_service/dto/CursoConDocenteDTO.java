@@ -7,5 +7,6 @@ public record CursoConDocenteDTO(
     DocenteDTO docente,
     Integer cupo,
     String materia,
-    String horario
+    String horario,
+    Boolean activo
 ) {}

@@ -58,6 +58,7 @@
             <th>Apellido</th>
             <th>Documento</th>
             <th>Curso</th>
+            <th>Estado</th>
             <th class="text-center" *ngIf="puedeGestionar">Acciones</th>
           </tr>
         </thead>
@@ -68,10 +69,15 @@
             <td>{{ a.apellido }}</td>
             <td>{{ a.dni }}</td>
             <td>{{ nombreCurso(a.cursoId) }}</td>
+            <td>
+              <span *ngIf="a.activo" class="badge text-bg-success">Activo</span>
+              <span *ngIf="!a.activo" class="badge text-bg-secondary">Baja</span>
+            </td>
             <td class="text-center" *ngIf="puedeGestionar">
               <div class="d-flex justify-content-center gap-1">
-                <button (click)="seleccionarParaEditar(a)" class="btn btn-outline-warning btn-sm">Editar</button>
-                <button (click)="eliminarAlumno(a.id)" class="btn btn-outline-danger btn-sm">Eliminar</button>
+                <button *ngIf="a.activo" (click)="seleccionarParaEditar(a)" class="btn btn-outline-warning btn-sm">Editar</button>
+                <button *ngIf="a.activo" (click)="eliminarAlumno(a.id)" class="btn btn-outline-danger btn-sm">Dar de baja</button>
+                <button *ngIf="!a.activo" (click)="activarAlumno(a.id)" class="btn btn-outline-success btn-sm">Activar</button>
               </div>
             </td>
           </tr>

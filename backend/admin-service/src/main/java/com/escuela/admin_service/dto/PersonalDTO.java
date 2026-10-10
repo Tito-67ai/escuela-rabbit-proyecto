@@ -9,5 +9,6 @@ public record PersonalDTO(
     String dni,
     Float sueldo,
     String cargo,
-    TipoPersona tipo
+    TipoPersona tipo,
+    Boolean activo
 ) {}

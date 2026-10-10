@@ -102,20 +102,35 @@ export class CursosComponent implements OnInit {
   }
 
   eliminarCurso(id: number) {
-    if (confirm('¿Eliminar curso?')) {
+    if (confirm('¿Dar de baja el curso?')) {
       this.mensajeExito = '';
       this.mensajeError = '';
       this.http.delete(`${this.apiUrl}/${id}`, { headers: this.getHeaders() }).subscribe({
         next: () => {
-          this.mensajeExito = 'Curso eliminado correctamente.';
+          this.mensajeExito = 'Curso dado de baja.';
           this.cargarCursos();
         },
         error: (err) => {
-          console.error('Error al eliminar curso', err);
+          console.error('Error al dar de baja curso', err);
           this.mensajeError = this.apiService.mensajeError(err);
         }
       });
     }
+  }
+
+  activarCurso(id: number) {
+    this.mensajeExito = '';
+    this.mensajeError = '';
+    this.http.put(`${this.apiUrl}/${id}/activar`, {}, { headers: this.getHeaders() }).subscribe({
+      next: () => {
+        this.mensajeExito = 'Curso activado.';
+        this.cargarCursos();
+      },
+      error: (err) => {
+        console.error('Error al activar curso', err);
+        this.mensajeError = this.apiService.mensajeError(err);
+      }
+    });
   }
 
   limpiarFormulario() {

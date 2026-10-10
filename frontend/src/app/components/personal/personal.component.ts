@@ -133,20 +133,35 @@ export class PersonalComponent implements OnInit {
   }
 
   eliminarPersonal(id: number) {
-    if (confirm('¿Eliminar este registro de personal?')) {
+    if (confirm('¿Dar de baja a este personal?')) {
       this.mensajeExito = '';
       this.mensajeError = '';
       this.http.delete(`${this.apiUrl}/${id}`, { headers: this.getHeaders() }).subscribe({
         next: () => {
-          this.mensajeExito = 'Personal eliminado correctamente.';
+          this.mensajeExito = 'Personal dado de baja.';
           this.cargarPersonal();
         },
         error: (err) => {
-          console.error('Error al eliminar personal', err);
+          console.error('Error al dar de baja personal', err);
           this.mensajeError = this.apiService.mensajeError(err);
         }
       });
     }
+  }
+
+  activarPersonal(id: number) {
+    this.mensajeExito = '';
+    this.mensajeError = '';
+    this.http.put(`${this.apiUrl}/${id}/activar`, {}, { headers: this.getHeaders() }).subscribe({
+      next: () => {
+        this.mensajeExito = 'Personal activado.';
+        this.cargarPersonal();
+      },
+      error: (err) => {
+        console.error('Error al activar personal', err);
+        this.mensajeError = this.apiService.mensajeError(err);
+      }
+    });
   }
 
   limpiarFormulario() {

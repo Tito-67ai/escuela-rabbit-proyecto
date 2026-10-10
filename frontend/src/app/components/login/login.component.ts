@@ -21,6 +21,7 @@ export class LoginComponent {
     this.apiService.login(this.credentials).subscribe({
       next: (res: any) => {
         this.apiService.guardarToken(res.token);
+        this.apiService.guardarRefreshToken(res.refreshToken);
         this.apiService.guardarRol(res.rol);
         this.errorLogin = false;
         this.loginExitoso.emit();

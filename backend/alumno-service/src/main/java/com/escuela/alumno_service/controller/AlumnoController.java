@@ -59,4 +59,13 @@ public class AlumnoController {
         }
         return ResponseEntity.noContent().build();
     }
+
+    @PutMapping("/{id}/activar")
+    @PreAuthorize("hasRole('PRECEPTOR')")
+    public ResponseEntity<Void> activar(@PathVariable Integer id) {
+        if (!alumnoService.activar(id)) {
+            throw new RecursoNoEncontradoException("No existe el alumno con id " + id);
+        }
+        return ResponseEntity.noContent().build();
+    }
 }

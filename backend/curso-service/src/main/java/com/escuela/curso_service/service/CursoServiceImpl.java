@@ -69,32 +69,48 @@ public class CursoServiceImpl implements CursoService {
 
     @Override
     public boolean eliminar(Integer id) {
-        if (cursoRepository.existsById(id)) {
-            cursoRepository.deleteById(id);
-            return true;
-        }
-        return false;
+        return cursoRepository.findById(id)
+                .map(curso -> {
+                    curso.setActivo(false);
+                    cursoRepository.save(curso);
+                    return true;
+                })
+                .orElse(false);
+    }
+
+    @Override
+    public boolean activar(Integer id) {
+        return cursoRepository.findById(id)
+                .map(curso -> {
+                    curso.setActivo(true);
+                    cursoRepository.save(curso);
+                    return true;
+                })
+                .orElse(false);
     }
 
     private CursoConDocenteDTO convertirAConDocenteDTO(Curso curso) {
-        DocenteDTO docenteDTO = null;
-        if (curso.getDocenteId() != null && docenteClient != null) {
-            try {
-                String token = obtenerTokenActual();
-                docenteDTO = docenteClient.obtenerDocentePorId(token, curso.getDocenteId());
-            } catch (Exception e) {
-                System.err.println("No se pudo obtener la informacion del docente: " + e.getMessage());
-            }
-        }
         return new CursoConDocenteDTO(
                 curso.getId(),
                 curso.getNombre(),
                 curso.getDocenteId(),
-                docenteDTO,
+                obtenerDocente(curso.getDocenteId()),
                 curso.getCupo(),
                 curso.getMateria(),
-                curso.getHorario()
+                curso.getHorario(),
+                curso.getActivo()
         );
+    }
+
+    private DocenteDTO obtenerDocente(Integer docenteId) {
+        if (docenteId == null || docenteClient == null) {
+            return null;
+        }
+        try {
+            return docenteClient.obtenerDocentePorId(obtenerTokenActual(), docenteId);
+        } catch (Exception ignored) {
+            return null;
+        }
     }
 
     private String obtenerTokenActual() {
