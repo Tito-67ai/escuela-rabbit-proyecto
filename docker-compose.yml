@@ -1,19 +1,25 @@
-# Docker Compose propio del proyecto Escuela (backend + RabbitMQ).
+# Docker Compose del proyecto COMPLETO (backend + RabbitMQ + frontend).
 #
-# Levanta toda la infraestructura y los microservicios en una red interna.
-# El frontend NO se incluye aca: se corre aparte con `ng serve` (o su propio Dockerfile).
+# Un solo comando, desde la raiz del repo:
 #
-# Orden de arranque: rabbitmq + eureka -> config-server -> microservicios -> gateway.
-# Los servicios esperan a que eureka/config-server esten "healthy" antes de iniciar.
+#     docker compose up -d --build
 #
-# Notas importantes para que funcione dentro de Docker:
-#  - Cada servicio tiene `spring.config.import=optional:configserver:` y `spring.cloud.config.uri=http://localhost:8888/`.
-#    Aca se sobreescribe el uri con SPRING_CLOUD_CONFIG_URI apuntando al contenedor config-server.
-#  - La config de rabbit (escuela-config) usa host=localhost. Se sobreescribe con SPRING_RABBITMQ_HOST=rabbitmq.
-#  - El gateway tiene rutas fijas a localhost:808x. Se sobreescriben por variables de entorno
-#    apuntando a los nombres de contenedor.
-#  - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true hace que los servicios (y el Feign entre ellos)
-#    se ubiquen por IP de contenedor en vez de por hostname no resoluble.
+# Servicios: rabbitmq, eureka-server, config-server, auth, admin, alumno, curso,
+# gateway-service y frontend.
+#
+#   Frontend (Angular servido con Nginx): http://localhost:4200
+#   API (a traves del gateway):           http://localhost:8080
+#
+# Detalles para que funcione dentro de Docker:
+#  - Los servicios usan `spring.config.import=optional:configserver:` con
+#    `spring.cloud.config.uri=http://localhost:8888/`. Aca se sobreescribe el uri
+#    con SPRING_CLOUD_CONFIG_URI apuntando al contenedor config-server.
+#  - La config de rabbit (repo escuela-config) usa host=localhost; se sobreescribe
+#    con SPRING_RABBITMQ_HOST=rabbitmq.
+#  - El gateway tiene rutas fijas a localhost:808x; se sobreescriben por variables
+#    de entorno apuntando a los nombres de contenedor.
+#  - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true hace que los servicios (y el Feign
+#    entre ellos) se ubiquen por IP de contenedor.
 
 services:
 
@@ -34,29 +40,29 @@ services:
       test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
       interval: 10s
       timeout: 5s
-      retries: 12
-      start_period: 30s
+      retries: 40
+      start_period: 45s
     restart: unless-stopped
     networks:
       - escuela-network
 
   eureka-server:
-    build: ./eureka-server
+    build: ./backend/eureka-server
     container_name: eureka-server
     ports:
       - "8761:8761"
     healthcheck:
-      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:8761/ || exit 1"]
+      test: ["CMD-SHELL", "wget -q -O /dev/null \"http://127.0.0.1:8761/\" || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 40
-      start_period: 30s
+      start_period: 45s
     restart: unless-stopped
     networks:
       - escuela-network
 
   config-server:
-    build: ./config-server
+    build: ./backend/config-server
     container_name: config-server
     ports:
       - "8888:8888"
@@ -81,7 +87,7 @@ services:
   # ---------------------------------------------------------------------------
 
   auth-service:
-    build: ./auth-service
+    build: ./backend/auth-service
     container_name: auth-service
     ports:
       - "8084:8084"
@@ -99,7 +105,7 @@ services:
       - escuela-network
 
   admin-service:
-    build: ./admin-service
+    build: ./backend/admin-service
     container_name: admin-service
     ports:
       - "8083:8083"
@@ -115,7 +121,7 @@ services:
       - escuela-network
 
   alumno-service:
-    build: ./alumno-service
+    build: ./backend/alumno-service
     container_name: alumno-service
     ports:
       - "8081:8081"
@@ -134,7 +140,7 @@ services:
       - escuela-network
 
   curso-service:
-    build: ./curso-service
+    build: ./backend/curso-service
     container_name: curso-service
     ports:
       - "8082:8082"
@@ -153,13 +159,13 @@ services:
       - escuela-network
 
   gateway-service:
-    build: ./gateway-service
+    build: ./backend/gateway-service
     container_name: gateway-service
     ports:
       - "8080:8080"
     environment:
       <<: *service-env
-      # Rutas del gateway apuntando a los contenedores (reemplazan las de localhost del application.yml/config).
+      # Rutas del gateway apuntando a los contenedores (reemplazan las de localhost).
       SPRING_CLOUD_GATEWAY_ROUTES_0_ID: auth-service
       SPRING_CLOUD_GATEWAY_ROUTES_0_URI: "http://auth-service:8084"
       SPRING_CLOUD_GATEWAY_ROUTES_0_PREDICATES_0: "Path=/auth/**"
@@ -178,6 +184,21 @@ services:
         condition: service_healthy
       config-server:
         condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - escuela-network
+
+  # ---------------------------------------------------------------------------
+  # Frontend (Angular compilado y servido con Nginx)
+  # ---------------------------------------------------------------------------
+
+  frontend:
+    build: ./frontend
+    container_name: frontend-escuela
+    ports:
+      - "4200:80"
+    depends_on:
+      - gateway-service
     restart: unless-stopped
     networks:
       - escuela-network

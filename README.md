@@ -7,6 +7,7 @@ Arquitectura orientada a microservicios con descubrimiento de servicios, API Gat
 
 ```
 escuela-rabbit-proyecto/
+├── docker-compose.yml            # Levanta TODO el proyecto (backend + RabbitMQ + frontend)
 ├── backend/                      # Microservicios Spring Boot (Java 17+)
 │   ├── eureka-server/            # Servidor de descubrimiento (Eureka) — puerto 8761
 │   ├── config-server/            # Configuración centralizada (Spring Cloud Config) — puerto 8888
@@ -15,8 +16,16 @@ escuela-rabbit-proyecto/
 │   ├── admin-service/            # Gestión de personal — puerto 8083
 │   ├── alumno-service/           # Gestión de alumnos — puerto 8081
 │   └── curso-service/            # Gestión de cursos — puerto 8082
-└── frontend/                     # Aplicación Angular (ng serve — puerto 4200)
+└── frontend/                     # Aplicación Angular (Docker la compila y la sirve con Nginx — puerto 4200)
 ```
+
+## Ramas
+
+| Rama | Contenido |
+| --- | --- |
+| `main` | Proyecto **completo**: backend + frontend + Docker. Es la que se instala y usa de una. |
+| `backend` | Solo los microservicios Spring Boot. |
+| `frontend` | Solo la aplicación Angular. |
 
 ## Roles
 
@@ -44,17 +53,21 @@ Orden de inicio desde `backend/` (cada módulo con `./mvnw.cmd spring-boot:run`)
 
 Con todo arriba, el front corre con `ng serve` desde `frontend/` y se accede en `http://localhost:4200`.
 
-## Arranque con Docker (backend + RabbitMQ)
+## Arranque con Docker (proyecto completo)
 
-Desde `backend/`:
+Requiere Docker. Desde la raíz del repo, un solo comando:
 
 ```bash
 docker compose up -d --build
 ```
 
-Levanta Eureka (8761), Config Server (8888), auth (8084), admin (8083), alumno (8081), curso (8082), gateway (8080) y **RabbitMQ** (5672, panel en `http://localhost:15672`, `guest/guest`). El frontend se ejecuta aparte con `ng serve`.
+Levanta **todo**: Eureka (8761), Config Server (8888), auth (8084), admin (8083), alumno (8081), curso (8082), gateway (8080), **RabbitMQ** (5672, panel en `http://localhost:15672`, `guest/guest`) y el **frontend Angular** compilado y servido con Nginx en `http://localhost:4200`.
 
-Cada servicio toma su configuración del repositorio `escuela-config` a través del Config Server (dentro de Docker, la URL del config-server se pasa por variable de entorno).
+Abrir `http://localhost:4200` y entrar con alguno de los usuarios de prueba. El frontend consume la API por el gateway (`http://localhost:8080`).
+
+Para bajar todo: `docker compose down`.
+
+Cada servicio toma su configuración del repositorio `escuela-config` a través del Config Server (dentro de Docker, la URL del config-server se pasa por variable de entorno). Requiere conexión a Internet la primera vez (baja dependencias de Maven/npm y la config).
 
 ### Mensajería (RabbitMQ)
 
