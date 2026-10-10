@@ -15,12 +15,24 @@ export class ApiService {
     return this.http.post(`${this.baseUrl}/auth/login`, credentials);
   }
 
+  refrescarToken(): Observable<any> {
+    return this.http.post(`${this.baseUrl}/auth/refresh`, { refreshToken: this.obtenerRefreshToken() });
+  }
+
   guardarToken(token: string) {
     localStorage.setItem('jwt_token', token);
   }
 
   obtenerToken(): string | null {
     return localStorage.getItem('jwt_token');
+  }
+
+  guardarRefreshToken(token: string) {
+    localStorage.setItem('refresh_token', token);
+  }
+
+  obtenerRefreshToken(): string | null {
+    return localStorage.getItem('refresh_token');
   }
 
   guardarRol(rol: string) {
@@ -33,6 +45,7 @@ export class ApiService {
 
   logout() {
     localStorage.removeItem('jwt_token');
+    localStorage.removeItem('refresh_token');
     localStorage.removeItem('user_rol');
   }
 

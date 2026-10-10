@@ -59,6 +59,7 @@
             <th>Horario</th>
             <th>Cupo</th>
             <th>Docente ID</th>
+            <th>Estado</th>
             <th class="text-center" *ngIf="puedeGestionar">Acciones</th>
           </tr>
         </thead>
@@ -70,10 +71,15 @@
             <td>{{ c.horario }}</td>
             <td><span class="badge text-bg-secondary">{{ c.cupo }}</span></td>
             <td>{{ c.docenteId }}</td>
+            <td>
+              <span *ngIf="c.activo" class="badge text-bg-success">Activo</span>
+              <span *ngIf="!c.activo" class="badge text-bg-secondary">Baja</span>
+            </td>
             <td class="text-center" *ngIf="puedeGestionar">
               <div class="d-flex justify-content-center gap-1">
-                <button (click)="seleccionarParaEditar(c)" class="btn btn-outline-warning btn-sm">Editar</button>
-                <button (click)="eliminarCurso(c.id)" class="btn btn-outline-danger btn-sm">Eliminar</button>
+                <button *ngIf="c.activo" (click)="seleccionarParaEditar(c)" class="btn btn-outline-warning btn-sm">Editar</button>
+                <button *ngIf="c.activo" (click)="eliminarCurso(c.id)" class="btn btn-outline-danger btn-sm">Dar de baja</button>
+                <button *ngIf="!c.activo" (click)="activarCurso(c.id)" class="btn btn-outline-success btn-sm">Activar</button>
               </div>
             </td>
           </tr>
