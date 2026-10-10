@@ -4,6 +4,7 @@ import com.escuela.curso_service.dto.CursoAltaDTO;
 import com.escuela.curso_service.dto.CursoConDocenteDTO;
 import com.escuela.curso_service.error.RecursoNoEncontradoException;
 import com.escuela.curso_service.service.CursoService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -35,14 +36,14 @@ public class CursoController {
 
     @PostMapping
     @PreAuthorize("hasAnyRole('ROOT', 'PRECEPTOR')")
-    public ResponseEntity<CursoConDocenteDTO> crear(@RequestBody CursoAltaDTO altaDTO) {
+    public ResponseEntity<CursoConDocenteDTO> crear(@Valid @RequestBody CursoAltaDTO altaDTO) {
         CursoConDocenteDTO creado = cursoService.guardar(altaDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(creado);
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyRole('ROOT', 'PRECEPTOR')")
-    public ResponseEntity<CursoConDocenteDTO> actualizar(@PathVariable Integer id, @RequestBody CursoAltaDTO altaDTO) {
+    public ResponseEntity<CursoConDocenteDTO> actualizar(@PathVariable Integer id, @Valid @RequestBody CursoAltaDTO altaDTO) {
         CursoConDocenteDTO actualizado = cursoService.actualizar(id, altaDTO);
         if (actualizado == null) {
             throw new RecursoNoEncontradoException("No existe el curso con id " + id);

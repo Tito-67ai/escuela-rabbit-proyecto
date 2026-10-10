@@ -2,6 +2,7 @@ package com.escuela.auth.controller;
 
 import com.escuela.auth.dto.*;
 import com.escuela.auth.service.AuthService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,19 +18,19 @@ public class AuthController {
 
     @PostMapping("/register")
     @PreAuthorize("hasRole('ROOT')")
-    public ResponseEntity<?> registrar(@RequestBody RegisterRequest request) {
+    public ResponseEntity<?> registrar(@Valid @RequestBody RegisterRequest request) {
         String mensaje = authService.registrar(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(mensaje);
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
+    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest request) {
         LoginResponse response = authService.login(request);
         return ResponseEntity.ok(response);
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<?> refreshToken(@RequestBody RefreshTokenRequest request) {
+    public ResponseEntity<?> refreshToken(@Valid @RequestBody RefreshTokenRequest request) {
         LoginResponse response = authService.refreshToken(request);
         return ResponseEntity.ok(response);
     }
