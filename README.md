@@ -44,10 +44,26 @@ Orden de inicio desde `backend/` (cada módulo con `./mvnw.cmd spring-boot:run`)
 
 Con todo arriba, el front corre con `ng serve` desde `frontend/` y se accede en `http://localhost:4200`.
 
+## Arranque con Docker (backend + RabbitMQ)
+
+Desde `backend/`:
+
+```bash
+docker compose up -d --build
+```
+
+Levanta Eureka (8761), Config Server (8888), auth (8084), admin (8083), alumno (8081), curso (8082), gateway (8080) y **RabbitMQ** (5672, panel en `http://localhost:15672`, `guest/guest`). El frontend se ejecuta aparte con `ng serve`.
+
+Cada servicio toma su configuración del repositorio `escuela-config` a través del Config Server (dentro de Docker, la URL del config-server se pasa por variable de entorno).
+
+### Mensajería (RabbitMQ)
+
+Al inscribir un alumno (`POST /alumnos`), `alumno-service` publica el evento `alumno.inscripto` y `curso-service` lo consume, descontando un lugar del cupo del curso.
+
 ## Documentación de APIs (Swagger UI)
 
 - Eureka: `http://localhost:8761/swagger-ui/index.html`
 - Config: `http://localhost:8888/swagger-ui/index.html`
 - Gateway (agrega auth + docs por servicio): `http://localhost:8080/swagger-ui.html`
 
-Login vía gateway: `POST http://localhost:8080/auth/login` con `{ "username": "...", "password": "..." }` → devuelve `{ token, rol }`. El resto de los endpoints exigen `Authorization: Bearer <token>`.
+Login vía gateway: `POST http://localhost:8080/auth/login` con `{ "username": "...", "password": "..." }` → devuelve `{ token, refreshToken, rol }`. El resto de los endpoints exigen `Authorization: Bearer <token>`. Para renovar el token: `POST http://localhost:8080/auth/refresh` con `{ "refreshToken": "..." }`.
