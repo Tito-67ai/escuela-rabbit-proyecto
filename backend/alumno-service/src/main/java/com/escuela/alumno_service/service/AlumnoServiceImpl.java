@@ -1,16 +1,21 @@
 package com.escuela.alumno_service.service;
 
+import com.escuela.alumno_service.client.CursoClient;
 import com.escuela.alumno_service.config.RabbitConfig;
 import com.escuela.alumno_service.dto.AlumnoAltaDTO;
 import com.escuela.alumno_service.dto.AlumnoConCursoDTO;
+import com.escuela.alumno_service.dto.CursoDTO;
 import com.escuela.alumno_service.entidad.Alumno;
 import com.escuela.alumno_service.event.AlumnoInscriptoEvent;
 import com.escuela.alumno_service.repository.AlumnoRepository;
+import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -25,6 +30,9 @@ public class AlumnoServiceImpl implements AlumnoService {
 
     @Autowired
     private RabbitTemplate rabbitTemplate;
+
+    @Autowired(required = false)
+    private CursoClient cursoClient;
 
     @Override
     public List<AlumnoConCursoDTO> obtenerTodos() {
@@ -100,6 +108,30 @@ public class AlumnoServiceImpl implements AlumnoService {
         dto.setApellido(alumno.getApellido());
         dto.setDni(alumno.getDni());
         dto.setCursoId(alumno.getCursoId());
+        dto.setCurso(obtenerCurso(alumno.getCursoId()));
         return dto;
+    }
+
+    private CursoDTO obtenerCurso(Integer cursoId) {
+        if (cursoId == null || cursoClient == null) {
+            return null;
+        }
+        try {
+            return cursoClient.obtenerCursoPorId(obtenerTokenActual(), cursoId);
+        } catch (Exception e) {
+            log.warn("No se pudo obtener el curso {}: {}", cursoId, e.getMessage());
+            return null;
+        }
+    }
+
+    private String obtenerTokenActual() {
+        try {
+            ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+            if (attributes != null) {
+                HttpServletRequest request = attributes.getRequest();
+                return request.getHeader("Authorization");
+            }
+        } catch (Exception ignored) {}
+        return null;
     }
 }
