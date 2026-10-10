@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 @Injectable({
@@ -58,5 +58,49 @@ export class ApiService {
 
   getPersonal(): Observable<any> {
     return this.http.get(`${this.baseUrl}/admin/personal`, { headers: this.getHeaders() });
+  }
+
+  // Traduce la respuesta de error del backend (ErrorResponse) a un texto para mostrar en pantalla.
+  mensajeError(err: unknown): string {
+    const httpError = err as HttpErrorResponse;
+    let cuerpo: any = httpError ? httpError.error : null;
+
+    if (typeof cuerpo === 'string') {
+      try {
+        cuerpo = JSON.parse(cuerpo);
+      } catch (e) {
+        return cuerpo;
+      }
+    }
+
+    if (cuerpo && typeof cuerpo === 'object') {
+      const errores: any[] = Array.isArray(cuerpo.errors)
+        ? cuerpo.errors.filter((e: any) => e !== null && e !== undefined && e !== '')
+        : [];
+      if (errores.length > 0) {
+        return String(errores[0]);
+      }
+      if (cuerpo.message) {
+        return String(cuerpo.message);
+      }
+      if (cuerpo.detail) {
+        return String(cuerpo.detail);
+      }
+    }
+
+    const status = httpError ? httpError.status : 0;
+    if (status === 0) {
+      return 'No se pudo conectar con el servidor.';
+    }
+    if (status === 401) {
+      return 'Tu sesión expiró o las credenciales son inválidas.';
+    }
+    if (status === 403) {
+      return 'No tenés permisos para realizar esta acción.';
+    }
+    if (status === 404) {
+      return 'El recurso solicitado no existe.';
+    }
+    return 'Ocurrió un error inesperado.';
   }
 }
