@@ -26,6 +26,10 @@ escuela-rabbit-proyecto/
 | `main` | Proyecto **completo**: backend + frontend + Docker. Es la que se instala y usa de una. |
 | `backend` | Solo los microservicios Spring Boot. |
 | `frontend` | Solo la aplicación Angular. |
+| `config-repo` | Solo la configuración centralizada (los `.yml` que sirve el Config Server). |
+
+> La configuración de los microservicios vive en la rama **`config-repo`** de este mismo repo.
+> El `config-server` la lee de ahí (`git.uri` + `default-label: config-repo`).
 
 ## Roles
 

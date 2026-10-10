@@ -12,8 +12,9 @@ spring:
     config:
       server:
         git:
-          uri: https://github.com/Tito-67ai/escuela-config.git
-          default-label: main
+          # La config centralizada vive en la rama `config-repo` de este mismo repo.
+          uri: https://github.com/Tito-67ai/escuela-rabbit-proyecto.git
+          default-label: config-repo
 
 eureka:
   client:
