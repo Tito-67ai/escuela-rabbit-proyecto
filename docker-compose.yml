@@ -5,19 +5,21 @@
 #     docker compose up -d --build
 #
 # Servicios: rabbitmq, eureka-server, config-server, auth, admin, alumno, curso,
-# gateway-service y frontend.
+# gateway-service, admin-server y frontend.
 #
 #   Frontend (Angular servido con Nginx): http://localhost:4200
 #   API (a traves del gateway):           http://localhost:8080
+#   Spring Boot Admin (monitoreo):        http://localhost:8090
+#   Consola RabbitMQ (guest/guest):       http://localhost:15672
 #
-# Detalles para que funcione dentro de Docker:
-#  - Los servicios usan `spring.config.import=optional:configserver:` con
-#    `spring.cloud.config.uri=http://localhost:8888/`. Aca se sobreescribe el uri
-#    con SPRING_CLOUD_CONFIG_URI apuntando al contenedor config-server.
-#  - La config de rabbit (rama config-repo) usa host=localhost; se sobreescribe
+# Cada microservicio arranca con el perfil `docker` (SPRING_PROFILES_ACTIVE=docker).
+# Ese perfil viene definido DENTRO del propio jar (application.yml + application-docker.yml)
+# y apunta la configuracion al contenedor `config-server` y el registro Eureka a
+# `eureka-server`. Por eso ya no hace falta sobreescribir URIs por variables de entorno.
+#
+#  - La config de rabbit (repo escuela-config) usa host=localhost; se sobreescribe
 #    con SPRING_RABBITMQ_HOST=rabbitmq.
-#  - El gateway tiene rutas fijas a localhost:808x; se sobreescriben por variables
-#    de entorno apuntando a los nombres de contenedor.
+#  - El gateway arma sus rutas con `lb://nombre-servicio` (descubrimiento via Eureka).
 #  - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true hace que los servicios (y el Feign
 #    entre ellos) se ubiquen por IP de contenedor.
 
@@ -67,7 +69,7 @@ services:
     ports:
       - "8888:8888"
     environment:
-      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: "http://eureka-server:8761/eureka/"
+      SPRING_PROFILES_ACTIVE: "docker"
       EUREKA_INSTANCE_PREFER_IP_ADDRESS: "true"
     depends_on:
       eureka-server:
@@ -92,9 +94,8 @@ services:
     ports:
       - "8084:8084"
     environment: &service-env
-      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: "http://eureka-server:8761/eureka/"
+      SPRING_PROFILES_ACTIVE: "docker"
       EUREKA_INSTANCE_PREFER_IP_ADDRESS: "true"
-      SPRING_CLOUD_CONFIG_URI: "http://config-server:8888/"
     depends_on:
       eureka-server:
         condition: service_healthy
@@ -127,7 +128,7 @@ services:
       - "8081:8081"
     environment:
       <<: *service-env
-      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_HOST: "rabbitmq"
     depends_on:
       eureka-server:
         condition: service_healthy
@@ -146,7 +147,7 @@ services:
       - "8082:8082"
     environment:
       <<: *service-env
-      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_HOST: "rabbitmq"
     depends_on:
       eureka-server:
         condition: service_healthy
@@ -165,20 +166,6 @@ services:
       - "8080:8080"
     environment:
       <<: *service-env
-      # Rutas del gateway apuntando a los contenedores (reemplazan las de localhost).
-      SPRING_CLOUD_GATEWAY_ROUTES_0_ID: auth-service
-      SPRING_CLOUD_GATEWAY_ROUTES_0_URI: "http://auth-service:8084"
-      SPRING_CLOUD_GATEWAY_ROUTES_0_PREDICATES_0: "Path=/auth/**"
-      SPRING_CLOUD_GATEWAY_ROUTES_1_ID: admin-service
-      SPRING_CLOUD_GATEWAY_ROUTES_1_URI: "http://admin-service:8083"
-      SPRING_CLOUD_GATEWAY_ROUTES_1_PREDICATES_0: "Path=/auth-admin/**"
-      SPRING_CLOUD_GATEWAY_ROUTES_1_PREDICATES_1: "Path=/admin/**"
-      SPRING_CLOUD_GATEWAY_ROUTES_2_ID: alumno-service
-      SPRING_CLOUD_GATEWAY_ROUTES_2_URI: "http://alumno-service:8081"
-      SPRING_CLOUD_GATEWAY_ROUTES_2_PREDICATES_0: "Path=/alumnos/**"
-      SPRING_CLOUD_GATEWAY_ROUTES_3_ID: curso-service
-      SPRING_CLOUD_GATEWAY_ROUTES_3_URI: "http://curso-service:8082"
-      SPRING_CLOUD_GATEWAY_ROUTES_3_PREDICATES_0: "Path=/cursos/**"
     depends_on:
       eureka-server:
         condition: service_healthy
@@ -189,7 +176,26 @@ services:
       - escuela-network
 
   # ---------------------------------------------------------------------------
-  # Frontend (Angular compilado y servido con Nginx)
+  # Monitoreo (Spring Boot Admin)
+  # ---------------------------------------------------------------------------
+
+  admin-server:
+    build: ./backend/admin-server
+    container_name: admin-server
+    ports:
+      - "8090:8090"
+    environment:
+      SPRING_PROFILES_ACTIVE: "docker"
+      EUREKA_INSTANCE_PREFER_IP_ADDRESS: "true"
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - escuela-network
+
+  # ---------------------------------------------------------------------------
+  # Frontend (Angular servido con Nginx)
   # ---------------------------------------------------------------------------
 
   frontend:

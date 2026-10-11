@@ -15,7 +15,8 @@ escuela-rabbit-proyecto/
 │   ├── auth-service/             # Autenticación y usuarios (JWT) — puerto 8084
 │   ├── admin-service/            # Gestión de personal — puerto 8083
 │   ├── alumno-service/           # Gestión de alumnos — puerto 8081
-│   └── curso-service/            # Gestión de cursos — puerto 8082
+│   ├── curso-service/            # Gestión de cursos — puerto 8082
+│   └── admin-server/             # Monitoreo (Spring Boot Admin) — puerto 8090
 └── frontend/                     # Aplicación Angular (Docker la compila y la sirve con Nginx — puerto 4200)
 ```
 
@@ -26,10 +27,11 @@ escuela-rabbit-proyecto/
 | `main` | Proyecto **completo**: backend + frontend + Docker. Es la que se instala y usa de una. |
 | `backend` | Solo los microservicios Spring Boot. |
 | `frontend` | Solo la aplicación Angular. |
-| `config-repo` | Solo la configuración centralizada (los `.yml` que sirve el Config Server). |
+| `config-repo` | Rama vieja de configuración (quedó como respaldo; ya **no** la usa el Config Server). |
 
-> La configuración de los microservicios vive en la rama **`config-repo`** de este mismo repo.
-> El `config-server` la lee de ahí (`git.uri` + `default-label: config-repo`).
+> La configuración de los microservicios vive en un **repositorio aparte**:
+> **https://github.com/Tito-67ai/escuela-config** (solo los `.yml`).
+> El `config-server` la lee de ahí (`git.uri` + `default-label: main`).
 
 ## Roles
 
@@ -54,6 +56,7 @@ Orden de inicio desde `backend/` (cada módulo con `./mvnw.cmd spring-boot:run`)
 5. `alumno-service` (8081)
 6. `curso-service` (8082)
 7. `gateway-service` (8080)
+8. `admin-server` (8090, monitoreo — opcional)
 
 Con todo arriba, el front corre con `ng serve` desde `frontend/` y se accede en `http://localhost:4200`.
 
@@ -65,13 +68,17 @@ Requiere Docker. Desde la raíz del repo, un solo comando:
 docker compose up -d --build
 ```
 
-Levanta **todo**: Eureka (8761), Config Server (8888), auth (8084), admin (8083), alumno (8081), curso (8082), gateway (8080), **RabbitMQ** (5672, panel en `http://localhost:15672`, `guest/guest`) y el **frontend Angular** compilado y servido con Nginx en `http://localhost:4200`.
+Levanta **todo**: Eureka (8761), Config Server (8888), auth (8084), admin (8083), alumno (8081), curso (8082), gateway (8080), monitoreo Spring Boot Admin (8090), **RabbitMQ** (5672, panel en `http://localhost:15672`, `guest/guest`) y el **frontend Angular** compilado y servido con Nginx en `http://localhost:4200`.
 
 Abrir `http://localhost:4200` y entrar con alguno de los usuarios de prueba. El frontend consume la API por el gateway (`http://localhost:8080`).
 
 Para bajar todo: `docker compose down`.
 
-Cada servicio toma su configuración de la rama `config-repo` de este mismo repositorio a través del Config Server (dentro de Docker, la URL del config-server se pasa por variable de entorno). Requiere conexión a Internet la primera vez (baja dependencias de Maven/npm y la config).
+Cada servicio toma su configuración del repositorio aparte `escuela-config` a través del Config Server. Dentro de Docker cada servicio arranca con el perfil **`docker`** (definido en su propio `application.yml` + `application-docker.yml`), que apunta la configuración al contenedor `config-server` y el registro Eureka a `eureka-server`; ya no hace falta sobreescribir URLs por variables de entorno. El gateway arma sus rutas con `lb://nombre-servicio` (descubrimiento vía Eureka). Requiere conexión a Internet la primera vez (baja dependencias de Maven/npm y la config).
+
+### Monitoreo (Spring Boot Admin)
+
+`admin-server` (puerto **8090**) se registra en Eureka y monitorea automáticamente todos los servicios que exponen Actuator: `http://localhost:8090`.
 
 ### Mensajería (RabbitMQ)
 
