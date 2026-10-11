@@ -44,6 +44,12 @@ public class ResponseErrorHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(new ErrorResponse(HttpStatus.NOT_FOUND, "", e.getMessage()), HttpStatus.NOT_FOUND);
     }
 
+    @ExceptionHandler({org.springframework.security.access.AccessDeniedException.class})
+    public ResponseEntity<ErrorResponse> handleAccessDenied(org.springframework.security.access.AccessDeniedException e) {
+        String detalle = e.getMessage() != null ? e.getMessage() : "Acceso denegado";
+        return new ResponseEntity<>(new ErrorResponse(HttpStatus.FORBIDDEN, "", "Tu rol no tiene permisos para esta operacion (" + detalle + ")"), HttpStatus.FORBIDDEN);
+    }
+
     @ExceptionHandler({Exception.class})
     public ResponseEntity<ErrorResponse> handleGeneric(Exception e) {
         String detalle = e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName();

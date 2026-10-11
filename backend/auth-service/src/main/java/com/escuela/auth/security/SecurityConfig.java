@@ -50,7 +50,7 @@ public class SecurityConfig {
             )
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                .requestMatchers("/auth/login", "/auth/refresh", "/v3/api-docs", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/actuator/**", "/h2-console/**", "/error").permitAll()
+                .requestMatchers("/auth/login", "/auth/refresh", "/auth/register", "/v3/api-docs", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/actuator/**", "/h2-console/**", "/error").permitAll()
                 .anyRequest().authenticated()
             );
 
