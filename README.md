@@ -14,9 +14,9 @@ El Gateway no usa `/swagger-ui/index.html`, sino `/webjars/swagger-ui/index.html
 
 docker
 
-```bash
+git clone https://github.com/Tito-67ai/escuela-rabbit-proyecto.git
+cd escuela-rabbit-proyecto
 docker compose up -d --build
-```
 
 | Acceso | URL |
 | --- | --- |
