@@ -20,15 +20,19 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<?> registrar(@Valid @RequestBody RegisterRequest request,
                                        Authentication authentication) {
-        // Solo un ROOT puede elegir el rol. El auto-registro publico siempre crea usuarios DOCENTE.
         boolean esRoot = authentication != null && authentication.isAuthenticated()
                 && authentication.getAuthorities().stream()
                     .anyMatch(a -> "ROLE_ROOT".equals(a.getAuthority()));
 
-        RegisterRequest efectivo = esRoot ? request
-                : new RegisterRequest(request.nombreUsuario(), request.clave(), request.correo(), Rol.DOCENTE);
+        // El auto-registro publico solo puede crear DOCENTE. Para asignar otro rol hay que estar como ROOT.
+        if (!esRoot && request.rol() != Rol.DOCENTE) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(
+                    "No podes asignar el rol " + request.rol()
+                    + ": solo un usuario ROOT puede hacerlo. Registrate con rol DOCENTE"
+                    + " o autoriza con el token de admin (admin/admin777).");
+        }
 
-        String mensaje = authService.registrar(efectivo);
+        String mensaje = authService.registrar(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(mensaje);
     }
 

@@ -74,7 +74,7 @@ Usar siempre el botón **Try it out** → editar el JSON → **Execute**.
 
 Respuesta: `201` → `Usuario registrado con exito`.
 
-**Regla de roles:** si te registrás **sin ser `ROOT`**, el sistema **ignora el `rol` que mandes y te asigna `DOCENTE`** (no se puede escalar a ROOT). Si estás autenticado como **ROOT**, se respeta el rol pedido (sirve para dar de alta `ADMINISTRATIVO`, `PRECEPTOR`, etc.).
+**Regla de roles:** si te registrás **sin ser `ROOT`**, el único rol permitido es `DOCENTE`. Si pedís otro (por ejemplo `ADMINISTRATIVO`), responde **`403`** con el mensaje *"No podes asignar el rol ... solo un usuario ROOT puede hacerlo"*. Para dar de alta `ADMINISTRATIVO`, `PRECEPTOR`, `DIRECTOR` o `ROOT` hay que estar autenticado como **ROOT** (paso 3: Authorize con el token de `admin/admin777`).
 Roles válidos: `ROOT`, `PRECEPTOR`, `DOCENTE`, `DIRECTOR`, `ADMINISTRATIVO`.
 Después iniciás sesión con ese usuario (`POST /auth/login`).
 
@@ -140,7 +140,7 @@ En Swagger de **alumno-service**, `POST /alumnos` (usar el `id` del curso):
 | Operación | Rol necesario |
 | --- | --- |
 | Login / Refresh | público |
-| Registrarse (`/auth/register`) | público · rol forzado a `DOCENTE` (ROOT puede elegir cualquiera) |
+| Registrarse (`/auth/register`) | público · sin ROOT solo `DOCENTE` (con ROOT, cualquier rol) |
 | Personal / `/admin/personal` | `ROOT`, `ADMINISTRATIVO` |
 | Cursos / `/cursos` | `ROOT`, `PRECEPTOR` |
 | Alumnos / `/alumnos` | `PRECEPTOR` |
