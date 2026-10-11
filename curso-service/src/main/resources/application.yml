@@ -1,0 +1,23 @@
+spring:
+  application:
+    name: curso-service
+  profiles:
+    default: dev
+  cloud:
+    config:
+      username: configuser
+      password: configpass123
+
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+    import: "optional:configserver:http://localhost:8888/"
+
+---
+spring:
+  config:
+    activate:
+      on-profile: docker
+    import: "optional:configserver:http://config-server:8888/"

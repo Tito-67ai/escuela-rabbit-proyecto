@@ -4,6 +4,8 @@ server:
 spring:
   application:
     name: config-server
+  profiles:
+    default: dev
   security:
     user:
       name: configuser
@@ -12,13 +14,44 @@ spring:
     config:
       server:
         git:
-          # La config centralizada vive en la rama `config-repo` de este mismo repo.
+          # La configuracion centralizada vive en la rama `config` de este mismo repo.
           uri: https://github.com/Tito-67ai/escuela-rabbit-proyecto.git
-          default-label: config-repo
+          default-label: config
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+eureka:
+  instance:
+    # Credenciales para que Spring Boot Admin (admin-server) pueda consultar
+    # los endpoints de actuator de este servicio (que esta protegido con basic auth).
+    metadata-map:
+      user.name: configuser
+      user.password: configpass123
+
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
 eureka:
   client:
     service-url:
       defaultZone: http://localhost:8761/eureka/
+    register-with-eureka: true
+    fetch-registry: true
+
+---
+spring:
+  config:
+    activate:
+      on-profile: docker
+eureka:
+  client:
+    service-url:
+      defaultZone: http://eureka-server:8761/eureka/
     register-with-eureka: true
     fetch-registry: true

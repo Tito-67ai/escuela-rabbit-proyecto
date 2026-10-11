@@ -7,11 +7,11 @@
 # Los servicios esperan a que eureka/config-server esten "healthy" antes de iniciar.
 #
 # Notas importantes para que funcione dentro de Docker:
-#  - Cada servicio tiene `spring.config.import=optional:configserver:` y `spring.cloud.config.uri=http://localhost:8888/`.
-#    Aca se sobreescribe el uri con SPRING_CLOUD_CONFIG_URI apuntando al contenedor config-server.
-#  - La config de rabbit (rama config-repo) usa host=localhost. Se sobreescribe con SPRING_RABBITMQ_HOST=rabbitmq.
-#  - El gateway tiene rutas fijas a localhost:808x. Se sobreescriben por variables de entorno
-#    apuntando a los nombres de contenedor.
+#  - Cada servicio arranca con el perfil `docker` (SPRING_PROFILES_ACTIVE=docker), definido
+#    DENTRO de su propio jar (application.yml + application-docker.yml). Ese perfil apunta la
+#    configuracion al contenedor config-server y el registro Eureka a eureka-server.
+#  - La config de rabbit (rama `config`) usa host=localhost. Se sobreescribe con SPRING_RABBITMQ_HOST=rabbitmq.
+#  - El gateway arma sus rutas con `lb://nombre-servicio` (descubrimiento via Eureka).
 #  - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true hace que los servicios (y el Feign entre ellos)
 #    se ubiquen por IP de contenedor en vez de por hostname no resoluble.
 
@@ -61,7 +61,7 @@ services:
     ports:
       - "8888:8888"
     environment:
-      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: "http://eureka-server:8761/eureka/"
+      SPRING_PROFILES_ACTIVE: "docker"
       EUREKA_INSTANCE_PREFER_IP_ADDRESS: "true"
     depends_on:
       eureka-server:
@@ -86,9 +86,8 @@ services:
     ports:
       - "8084:8084"
     environment: &service-env
-      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: "http://eureka-server:8761/eureka/"
+      SPRING_PROFILES_ACTIVE: "docker"
       EUREKA_INSTANCE_PREFER_IP_ADDRESS: "true"
-      SPRING_CLOUD_CONFIG_URI: "http://config-server:8888/"
     depends_on:
       eureka-server:
         condition: service_healthy
@@ -121,7 +120,7 @@ services:
       - "8081:8081"
     environment:
       <<: *service-env
-      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_HOST: "rabbitmq"
     depends_on:
       eureka-server:
         condition: service_healthy
@@ -140,7 +139,7 @@ services:
       - "8082:8082"
     environment:
       <<: *service-env
-      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_HOST: "rabbitmq"
     depends_on:
       eureka-server:
         condition: service_healthy
@@ -159,24 +158,29 @@ services:
       - "8080:8080"
     environment:
       <<: *service-env
-      # Rutas del gateway apuntando a los contenedores (reemplazan las de localhost del application.yml/config).
-      SPRING_CLOUD_GATEWAY_ROUTES_0_ID: auth-service
-      SPRING_CLOUD_GATEWAY_ROUTES_0_URI: "http://auth-service:8084"
-      SPRING_CLOUD_GATEWAY_ROUTES_0_PREDICATES_0: "Path=/auth/**"
-      SPRING_CLOUD_GATEWAY_ROUTES_1_ID: admin-service
-      SPRING_CLOUD_GATEWAY_ROUTES_1_URI: "http://admin-service:8083"
-      SPRING_CLOUD_GATEWAY_ROUTES_1_PREDICATES_0: "Path=/auth-admin/**"
-      SPRING_CLOUD_GATEWAY_ROUTES_1_PREDICATES_1: "Path=/admin/**"
-      SPRING_CLOUD_GATEWAY_ROUTES_2_ID: alumno-service
-      SPRING_CLOUD_GATEWAY_ROUTES_2_URI: "http://alumno-service:8081"
-      SPRING_CLOUD_GATEWAY_ROUTES_2_PREDICATES_0: "Path=/alumnos/**"
-      SPRING_CLOUD_GATEWAY_ROUTES_3_ID: curso-service
-      SPRING_CLOUD_GATEWAY_ROUTES_3_URI: "http://curso-service:8082"
-      SPRING_CLOUD_GATEWAY_ROUTES_3_PREDICATES_0: "Path=/cursos/**"
     depends_on:
       eureka-server:
         condition: service_healthy
       config-server:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - escuela-network
+
+  # ---------------------------------------------------------------------------
+  # Monitoreo (Spring Boot Admin)
+  # ---------------------------------------------------------------------------
+
+  admin-server:
+    build: ./admin-server
+    container_name: admin-server
+    ports:
+      - "8090:8090"
+    environment:
+      SPRING_PROFILES_ACTIVE: "docker"
+      EUREKA_INSTANCE_PREFER_IP_ADDRESS: "true"
+    depends_on:
+      eureka-server:
         condition: service_healthy
     restart: unless-stopped
     networks:

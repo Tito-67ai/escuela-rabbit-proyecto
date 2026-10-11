@@ -15,6 +15,7 @@ Sistema distribuido basado en arquitectura de microservicios desarrollado con Ja
 | **curso-service** | `8082` | `/cursos/**` | Microservicio de gestión de cursos |
 | **admin-service** | `8083` | `/admin/**` | Microservicio de gestión de personal y administración del colegio |
 | **auth-service** | `8084` | `/auth/**` | Microservicio de autenticación y emisión de JWT |
+| **admin-server** | `8090` | N/A | Monitoreo de los servicios con Spring Boot Admin |
 
 ---
 
@@ -39,7 +40,7 @@ Gestión de Personal / Admin (Protegido): http://localhost:8080/admin
 Orden de Despliegue y Arranque
 eureka-server: Registro de descubrimiento.
 
-config-server: Carga de propiedades centralizadas desde el repositorio Git.
+config-server: Carga de propiedades centralizadas desde la rama `config` de este repositorio.
 
 Servicios de Negocio y Seguridad (auth-service, admin-service, alumno-service, curso-service).
 
