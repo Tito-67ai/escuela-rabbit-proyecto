@@ -14,10 +14,9 @@ spring:
     config:
       server:
         git:
-          # La configuracion centralizada vive en un repositorio aparte:
-          #   https://github.com/Tito-67ai/escuela-config
-          uri: https://github.com/Tito-67ai/escuela-config.git
-          default-label: main
+          # La configuracion centralizada vive en la rama `config` de este mismo repo.
+          uri: https://github.com/Tito-67ai/escuela-rabbit-proyecto.git
+          default-label: config
 
 management:
   endpoints:

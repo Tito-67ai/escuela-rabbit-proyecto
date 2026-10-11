@@ -27,11 +27,10 @@ escuela-rabbit-proyecto/
 | `main` | Proyecto **completo**: backend + frontend + Docker. Es la que se instala y usa de una. |
 | `backend` | Solo los microservicios Spring Boot. |
 | `frontend` | Solo la aplicación Angular. |
-| `config-repo` | Rama vieja de configuración (quedó como respaldo; ya **no** la usa el Config Server). |
+| `config` | Solo la configuración centralizada (los `.yml` que sirve el Config Server). |
 
-> La configuración de los microservicios vive en un **repositorio aparte**:
-> **https://github.com/Tito-67ai/escuela-config** (solo los `.yml`).
-> El `config-server` la lee de ahí (`git.uri` + `default-label: main`).
+> La configuración de los microservicios vive en la rama **`config`** de este mismo repo.
+> El `config-server` la lee de ahí (`git.uri` + `default-label: config`).
 
 ## Roles
 
@@ -74,7 +73,7 @@ Abrir `http://localhost:4200` y entrar con alguno de los usuarios de prueba. El 
 
 Para bajar todo: `docker compose down`.
 
-Cada servicio toma su configuración del repositorio aparte `escuela-config` a través del Config Server. Dentro de Docker cada servicio arranca con el perfil **`docker`** (definido en su propio `application.yml` + `application-docker.yml`), que apunta la configuración al contenedor `config-server` y el registro Eureka a `eureka-server`; ya no hace falta sobreescribir URLs por variables de entorno. El gateway arma sus rutas con `lb://nombre-servicio` (descubrimiento vía Eureka). Requiere conexión a Internet la primera vez (baja dependencias de Maven/npm y la config).
+Cada servicio toma su configuración de la rama `config` de este repositorio a través del Config Server. Dentro de Docker cada servicio arranca con el perfil **`docker`** (definido en su propio `application.yml` + `application-docker.yml`), que apunta la configuración al contenedor `config-server` y el registro Eureka a `eureka-server`; ya no hace falta sobreescribir URLs por variables de entorno. El gateway arma sus rutas con `lb://nombre-servicio` (descubrimiento vía Eureka). Requiere conexión a Internet la primera vez (baja dependencias de Maven/npm y la config).
 
 ### Monitoreo (Spring Boot Admin)
 
