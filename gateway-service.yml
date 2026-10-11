@@ -17,23 +17,25 @@ spring:
             allowedHeaders: "*"
             allowCredentials: true
       routes:
+        # Las rutas usan `lb://` (LoadBalancer): el gateway resuelve cada servicio
+        # por su nombre en Eureka, asi funciona igual en local (dev) y en Docker.
         - id: auth-service
-          uri: http://localhost:8084
+          uri: lb://auth-service
           predicates:
             - Path=/auth/**
 
         - id: admin-service
-          uri: http://localhost:8083
+          uri: lb://admin-service
           predicates:
             - Path=/auth-admin/**, /admin/**
 
         - id: alumno-service
-          uri: http://localhost:8081
+          uri: lb://alumno-service
           predicates:
             - Path=/alumnos/**
 
         - id: curso-service
-          uri: http://localhost:8082
+          uri: lb://curso-service
           predicates:
             - Path=/cursos/**
 
