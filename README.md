@@ -1,8 +1,4 @@
-# Escuela Rabbit
-
-Sistema de gestión escolar: microservicios **Spring Boot** + frontend **Angular** (Eureka, Gateway, Config Server, JWT, RabbitMQ).
-
-## 🔗 Swagger
+swagger
 
 | Servicio | URL |
 | --- | --- |
@@ -16,7 +12,7 @@ Sistema de gestión escolar: microservicios **Spring Boot** + frontend **Angular
 Login: `POST /auth/login` → copiar el token → botón **Authorize** (pegar **solo el token**).
 El Gateway no usa `/swagger-ui/index.html`, sino `/webjars/swagger-ui/index.html`.
 
-## 🚀 Levantar
+docker
 
 ```bash
 docker compose up -d --build
@@ -29,10 +25,6 @@ docker compose up -d --build
 | RabbitMQ | http://localhost:15672 (`guest` / `guest`) |
 | Monitoreo | http://localhost:8090 |
 
-## 👤 Usuarios de prueba
+usuarios para login y sacar token
 
 `admin`/`admin777` (ROOT) · `administrativo`/`administrativo123` · `preceptor`/`preceptor123` · `docente`/`docente123` · `director`/`director123`
-
-## 🌿 Ramas
-
-`main` (proyecto completo) · `backend` · `frontend` · `config` (configuración que sirve el Config Server)
