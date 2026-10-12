@@ -52,9 +52,10 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 }
             } catch (Exception e) {
                 SecurityContextHolder.clearContext();
-                // No bloqueamos login/refresh: si el token guardado esta vencido hay que poder volver a entrar.
+                // No bloqueamos login/refresh/register: si el token guardado esta vencido hay que poder volver a entrar o registrarse.
                 if (!request.getServletPath().startsWith("/auth/login")
-                        && !request.getServletPath().startsWith("/auth/refresh")) {
+                        && !request.getServletPath().startsWith("/auth/refresh")
+                        && !request.getServletPath().startsWith("/auth/register")) {
                     responderNoAutorizado(response);
                     return;
                 }

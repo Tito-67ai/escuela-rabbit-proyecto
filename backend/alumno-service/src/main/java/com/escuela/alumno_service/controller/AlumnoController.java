@@ -35,14 +35,14 @@ public class AlumnoController {
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('PRECEPTOR')")
+    @PreAuthorize("hasAnyRole('ROOT', 'PRECEPTOR')")
     public ResponseEntity<AlumnoConCursoDTO> crear(@Valid @RequestBody AlumnoAltaDTO altaDTO) {
         AlumnoConCursoDTO creado = alumnoService.guardar(altaDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(creado);
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('PRECEPTOR')")
+    @PreAuthorize("hasAnyRole('ROOT', 'PRECEPTOR')")
     public ResponseEntity<AlumnoConCursoDTO> actualizar(@PathVariable Integer id, @Valid @RequestBody AlumnoAltaDTO altaDTO) {
         AlumnoConCursoDTO actualizado = alumnoService.actualizar(id, altaDTO);
         if (actualizado == null) {
@@ -52,7 +52,7 @@ public class AlumnoController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('PRECEPTOR')")
+    @PreAuthorize("hasAnyRole('ROOT', 'PRECEPTOR')")
     public ResponseEntity<Void> eliminar(@PathVariable Integer id) {
         if (!alumnoService.eliminar(id)) {
             throw new RecursoNoEncontradoException("No existe el alumno con id " + id);
@@ -61,7 +61,7 @@ public class AlumnoController {
     }
 
     @PutMapping("/{id}/activar")
-    @PreAuthorize("hasRole('PRECEPTOR')")
+    @PreAuthorize("hasAnyRole('ROOT', 'PRECEPTOR')")
     public ResponseEntity<Void> activar(@PathVariable Integer id) {
         if (!alumnoService.activar(id)) {
             throw new RecursoNoEncontradoException("No existe el alumno con id " + id);

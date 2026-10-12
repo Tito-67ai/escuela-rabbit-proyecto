@@ -143,7 +143,17 @@ En Swagger de **alumno-service**, `POST /alumnos` (usar el `id` del curso):
 | Registrarse (`/auth/register`) | público · sin ROOT solo `DOCENTE` (con ROOT, cualquier rol) |
 | Personal / `/admin/personal` | `ROOT`, `ADMINISTRATIVO` |
 | Cursos / `/cursos` | `ROOT`, `PRECEPTOR` |
-| Alumnos / `/alumnos` | `PRECEPTOR` |
+| Alumnos / `/alumnos` | `ROOT`, `PRECEPTOR` |
+
+### Códigos de error (respuestas claras)
+
+| Código | Cuándo pasa | Respuesta (ejemplo) |
+| --- | --- | --- |
+| `400` | Body inválido, JSON malformado o un valor fuera de rango (ej. un rol/tipo inexistente, id no numérico) | `{"status":"BAD_REQUEST","codigo":400,"errors":["El cuerpo de la peticion no se pudo leer. Revisa ..."]}` |
+| `401` | Falta el token, es inválido/vencido, o credenciales/refresh incorrectos | `{"status":401,"message":"Token invalido o expirado. Volve a iniciar sesion."}` |
+| `403` | El rol no tiene permiso para la operación, o pedís un rol distinto a `DOCENTE` sin ser ROOT | `{"status":"FORBIDDEN","codigo":403,"errors":["Tu rol no tiene permisos ..."]}` |
+| `404` | El recurso no existe (id inexistente en GET/PUT/DELETE/activar) | `{"status":"NOT_FOUND","codigo":404,"errors":["No existe el curso con id 999"]}` |
+| `409` | El nombre de usuario ya existe al registrarse | `{"status":"CONFLICT","codigo":409,"errors":["El nombre de usuario ya existe"]}` |
 
 Usuarios de ejemplo (se recrean al reiniciar auth-service):
 
@@ -161,5 +171,5 @@ Usuarios de ejemplo (se recrean al reiniciar auth-service):
 
 - La auth usa **H2 en memoria**: al reiniciar el contenedor `auth-service` se pierden los usuarios creados (vuelven solo los 5 de ejemplo). Lo mismo aplica a alumnos/cursos/personal.
 - El gateway (`http://localhost:8080`) enruta por Eureka a los mismos endpoints (`/auth`, `/alumnos`, `/cursos`, `/admin`), útil para probar igual que entra el frontend.
-- Si un endpoint devuelve **401** → no autorizaste, el token venció, o lo pegaste mal en **Authorize** (por ejemplo con `Bearer` de más). Respuesta clara: `{"status":401,"message":"Token invalido o expirado. Volve a iniciar sesion."}`. El **login** y el **refresh** no se bloquean por un token viejo, así siempre podés volver a entrar.
+- Si un endpoint devuelve **401** → no autorizaste, el token venció, o lo pegaste mal en **Authorize** (por ejemplo con `Bearer` de más). Respuesta clara: `{"status":401,"message":"Token invalido o expirado. Volve a iniciar sesion."}`. El **login**, el **refresh** y el **registro** (`/auth/register`) no se bloquean por un token viejo, así siempre podés volver a entrar o registrarte.
 - Si `POST /auth/register` devuelve **403** → pediste un rol distinto a `DOCENTE` sin estar autenticado como ROOT. Autorizá con el token de `admin/admin777` (paso 2 y 3) y volvé a intentar.

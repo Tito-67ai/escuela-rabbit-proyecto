@@ -52,7 +52,7 @@ public class ResponseErrorHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler({TokenInvalidoException.class})
     public ResponseEntity<ErrorResponse> handleTokenInvalido(TokenInvalidoException e) {
-        return new ResponseEntity<>(new ErrorResponse(HttpStatus.FORBIDDEN, "", e.getMessage()), HttpStatus.FORBIDDEN);
+        return new ResponseEntity<>(new ErrorResponse(HttpStatus.UNAUTHORIZED, "", e.getMessage()), HttpStatus.UNAUTHORIZED);
     }
 
     @ExceptionHandler({org.springframework.security.access.AccessDeniedException.class})
