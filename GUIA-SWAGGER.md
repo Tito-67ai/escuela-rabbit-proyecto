@@ -75,7 +75,7 @@ Usar siempre el botón **Try it out** → editar el JSON → **Execute**.
 Respuesta: `201` → `Usuario registrado con exito`.
 
 **Regla de roles:** si te registrás **sin ser `ROOT`**, el único rol permitido es `DOCENTE`. Si pedís otro (por ejemplo `ADMINISTRATIVO`), responde **`403`** con el mensaje *"No podes asignar el rol ... solo un usuario ROOT puede hacerlo"*. Para dar de alta `ADMINISTRATIVO`, `PRECEPTOR`, `DIRECTOR` o `ROOT` hay que estar autenticado como **ROOT** (paso 3: Authorize con el token de `admin/admin777`).
-Roles válidos: `ROOT`, `PRECEPTOR`, `DOCENTE`, `DIRECTOR`, `ADMINISTRATIVO`.
+Roles válidos: `ROOT`, `PRECEPTOR`, `DOCENTE`, `DIRECTOR`, `ADMINISTRATIVO` (no importa mayúsculas/minúsculas: `docente` = `DOCENTE`).
 Después iniciás sesión con ese usuario (`POST /auth/login`).
 
 ### 4.2 Crear personal (admin-service, `POST /admin/personal`)

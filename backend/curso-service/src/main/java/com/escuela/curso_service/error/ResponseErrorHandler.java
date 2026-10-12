@@ -5,6 +5,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -48,6 +49,16 @@ public class ResponseErrorHandler extends ResponseEntityExceptionHandler {
     public ResponseEntity<ErrorResponse> handleAccessDenied(org.springframework.security.access.AccessDeniedException e) {
         String detalle = e.getMessage() != null ? e.getMessage() : "Acceso denegado";
         return new ResponseEntity<>(new ErrorResponse(HttpStatus.FORBIDDEN, "", "Tu rol no tiene permisos para esta operacion (" + detalle + ")"), HttpStatus.FORBIDDEN);
+    }
+
+    @Override
+    protected ResponseEntity<Object> handleHttpMessageNotReadable(final HttpMessageNotReadableException ex,
+                                                                  final HttpHeaders headers,
+                                                                  final HttpStatusCode status,
+                                                                  final WebRequest request) {
+        final ErrorResponse errorResponse = new ErrorResponse(HttpStatus.BAD_REQUEST, "",
+                "El cuerpo de la peticion no se pudo leer. Revisa el formato JSON y que los valores sean validos.");
+        return handleExceptionInternal(ex, errorResponse, headers, HttpStatus.BAD_REQUEST, request);
     }
 
     @ExceptionHandler({Exception.class})
