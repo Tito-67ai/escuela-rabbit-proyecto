@@ -5,8 +5,12 @@ import com.escuela.curso_service.dto.CursoAltaDTO;
 import com.escuela.curso_service.dto.CursoConDocenteDTO;
 import com.escuela.curso_service.dto.DocenteDTO;
 import com.escuela.curso_service.entidad.Curso;
+import com.escuela.curso_service.error.ReferenciaInvalidaException;
 import com.escuela.curso_service.repository.CursoRepository;
+import feign.FeignException;
 import jakarta.servlet.http.HttpServletRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.context.request.RequestContextHolder;
@@ -17,6 +21,8 @@ import java.util.stream.Collectors;
 
 @Service
 public class CursoServiceImpl implements CursoService {
+
+    private static final Logger log = LoggerFactory.getLogger(CursoServiceImpl.class);
 
     @Autowired
     private CursoRepository cursoRepository;
@@ -41,6 +47,8 @@ public class CursoServiceImpl implements CursoService {
 
     @Override
     public CursoConDocenteDTO guardar(CursoAltaDTO altaDTO) {
+        validarDocente(altaDTO.docenteId());
+
         Curso curso = new Curso();
         curso.setNombre(altaDTO.nombre());
         curso.setDocenteId(altaDTO.docenteId());
@@ -56,6 +64,7 @@ public class CursoServiceImpl implements CursoService {
     public CursoConDocenteDTO actualizar(Integer id, CursoAltaDTO altaDTO) {
         return cursoRepository.findById(id)
                 .map(curso -> {
+                    validarDocente(altaDTO.docenteId());
                     curso.setNombre(altaDTO.nombre());
                     curso.setDocenteId(altaDTO.docenteId());
                     curso.setCupo(altaDTO.cupo());
@@ -100,6 +109,20 @@ public class CursoServiceImpl implements CursoService {
                 curso.getHorario(),
                 curso.getActivo()
         );
+    }
+
+    private void validarDocente(Integer docenteId) {
+        if (docenteId == null || docenteClient == null) {
+            return;
+        }
+        try {
+            docenteClient.obtenerDocentePorId(obtenerTokenActual(), docenteId);
+        } catch (FeignException.NotFound e) {
+            throw new ReferenciaInvalidaException("El docente con id " + docenteId + " no existe");
+        } catch (Exception e) {
+            // Si no se pudo validar (por ejemplo, admin-service caido) no bloqueamos la operacion.
+            log.warn("No se pudo validar el docente {}: {}", docenteId, e.getMessage());
+        }
     }
 
     private DocenteDTO obtenerDocente(Integer docenteId) {

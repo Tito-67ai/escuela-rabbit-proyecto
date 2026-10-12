@@ -110,6 +110,8 @@ En Swagger de **curso-service**, `POST /cursos`:
 }
 ```
 
+> El `docenteId` **debe existir** en `/admin/personal`. Si no existe, responde **`400`** con *"El docente con id X no existe"*.
+
 ### 4.4 Crear un alumno
 
 En Swagger de **alumno-service**, `POST /alumnos` (usar el `id` del curso):
@@ -122,6 +124,8 @@ En Swagger de **alumno-service**, `POST /alumnos` (usar el `id` del curso):
   "cursoId": 1
 }
 ```
+
+> El `cursoId` **debe existir**. Si no existe, responde **`400`** con *"El curso con id X no existe"*.
 
 ### 4.5 Listar / editar / borrar
 
@@ -149,7 +153,7 @@ En Swagger de **alumno-service**, `POST /alumnos` (usar el `id` del curso):
 
 | Código | Cuándo pasa | Respuesta (ejemplo) |
 | --- | --- | --- |
-| `400` | Body inválido, JSON malformado o un valor fuera de rango (ej. un rol/tipo inexistente, id no numérico) | `{"status":"BAD_REQUEST","codigo":400,"errors":["El cuerpo de la peticion no se pudo leer. Revisa ..."]}` |
+| `400` | Body inválido, JSON malformado, valor fuera de rango o **referencia inexistente** (ej. crear un curso con un `docenteId` que no existe) | `{"status":"BAD_REQUEST","codigo":400,"errors":["El docente con id 999999 no existe"]}` |
 | `401` | Falta el token, es inválido/vencido, o credenciales/refresh incorrectos | `{"status":401,"message":"Token invalido o expirado. Volve a iniciar sesion."}` |
 | `403` | El rol no tiene permiso para la operación, o pedís un rol distinto a `DOCENTE` sin ser ROOT | `{"status":"FORBIDDEN","codigo":403,"errors":["Tu rol no tiene permisos ..."]}` |
 | `404` | El recurso no existe (id inexistente en GET/PUT/DELETE/activar) | `{"status":"NOT_FOUND","codigo":404,"errors":["No existe el curso con id 999"]}` |

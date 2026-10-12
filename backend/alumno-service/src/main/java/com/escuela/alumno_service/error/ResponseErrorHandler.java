@@ -61,6 +61,11 @@ public class ResponseErrorHandler extends ResponseEntityExceptionHandler {
         return handleExceptionInternal(ex, errorResponse, headers, HttpStatus.BAD_REQUEST, request);
     }
 
+    @ExceptionHandler({ReferenciaInvalidaException.class})
+    public ResponseEntity<ErrorResponse> handleReferenciaInvalida(ReferenciaInvalidaException e) {
+        return new ResponseEntity<>(new ErrorResponse(HttpStatus.BAD_REQUEST, "", e.getMessage()), HttpStatus.BAD_REQUEST);
+    }
+
     @ExceptionHandler({Exception.class})
     public ResponseEntity<ErrorResponse> handleGeneric(Exception e) {
         String detalle = e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName();

@@ -6,8 +6,10 @@ import com.escuela.alumno_service.dto.AlumnoAltaDTO;
 import com.escuela.alumno_service.dto.AlumnoConCursoDTO;
 import com.escuela.alumno_service.dto.CursoDTO;
 import com.escuela.alumno_service.entidad.Alumno;
+import com.escuela.alumno_service.error.ReferenciaInvalidaException;
 import com.escuela.alumno_service.event.AlumnoInscriptoEvent;
 import com.escuela.alumno_service.repository.AlumnoRepository;
+import feign.FeignException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,6 +53,8 @@ public class AlumnoServiceImpl implements AlumnoService {
 
     @Override
     public AlumnoConCursoDTO guardar(AlumnoAltaDTO altaDTO) {
+        validarCurso(altaDTO.cursoId());
+
         Alumno alumno = new Alumno();
         alumno.setNombre(altaDTO.nombre());
         alumno.setApellido(altaDTO.apellido());
@@ -82,6 +86,7 @@ public class AlumnoServiceImpl implements AlumnoService {
     public AlumnoConCursoDTO actualizar(Integer id, AlumnoAltaDTO altaDTO) {
         return alumnoRepository.findById(id)
                 .map(alumno -> {
+                    validarCurso(altaDTO.cursoId());
                     alumno.setNombre(altaDTO.nombre());
                     alumno.setApellido(altaDTO.apellido());
                     alumno.setDni(altaDTO.dni());
@@ -112,6 +117,20 @@ public class AlumnoServiceImpl implements AlumnoService {
                     return true;
                 })
                 .orElse(false);
+    }
+
+    private void validarCurso(Integer cursoId) {
+        if (cursoId == null || cursoClient == null) {
+            return;
+        }
+        try {
+            cursoClient.obtenerCursoPorId(obtenerTokenActual(), cursoId);
+        } catch (FeignException.NotFound e) {
+            throw new ReferenciaInvalidaException("El curso con id " + cursoId + " no existe");
+        } catch (Exception e) {
+            // Si no se pudo validar (por ejemplo, curso-service caido) no bloqueamos la operacion.
+            log.warn("No se pudo validar el curso {}: {}", cursoId, e.getMessage());
+        }
     }
 
     private AlumnoConCursoDTO convertirAConCursoDTO(Alumno alumno) {
