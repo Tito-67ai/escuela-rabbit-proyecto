@@ -52,9 +52,18 @@ public class JwtFilter extends OncePerRequestFilter {
                 }
             } catch (Exception e) {
                 SecurityContextHolder.clearContext();
+                responderNoAutorizado(response);
+                return;
             }
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    private void responderNoAutorizado(HttpServletResponse response) throws IOException {
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        response.getWriter().write("{\"status\":401,\"message\":\"Token invalido o expirado. Volve a iniciar sesion.\"}");
     }
 }

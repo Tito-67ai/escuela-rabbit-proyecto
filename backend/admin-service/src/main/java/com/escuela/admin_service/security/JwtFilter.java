@@ -31,26 +31,38 @@ public class JwtFilter extends OncePerRequestFilter {
 
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             jwt = authHeader.substring(7);
-            try {
-                if (!jwt.equalsIgnoreCase("null") && !jwt.equalsIgnoreCase("undefined") && !jwt.trim().isEmpty()) {
+            if (!jwt.equalsIgnoreCase("null") && !jwt.equalsIgnoreCase("undefined") && !jwt.trim().isEmpty()) {
+                try {
                     username = jwtUtil.obtenerUsername(jwt);
+                } catch (Exception e) {
+                    SecurityContextHolder.clearContext();
+                    responderNoAutorizado(response);
+                    return;
                 }
-            } catch (Exception e) {
-                System.err.println("Error extrayendo usuario del JWT: " + e.getMessage());
+                if (!jwtUtil.validarToken(jwt)) {
+                    SecurityContextHolder.clearContext();
+                    responderNoAutorizado(response);
+                    return;
+                }
             }
         }
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            if (jwtUtil.validarToken(jwt)) {
-                String rol = jwtUtil.obtenerRol(jwt);
-                String autoridad = rol != null ? "ROLE_" + rol : "ROLE_USER";
-                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                        username, null, Collections.singletonList(new SimpleGrantedAuthority(autoridad)));
-                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(authToken);
-            }
+            String rol = jwtUtil.obtenerRol(jwt);
+            String autoridad = rol != null ? "ROLE_" + rol : "ROLE_USER";
+            UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                    username, null, Collections.singletonList(new SimpleGrantedAuthority(autoridad)));
+            authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+            SecurityContextHolder.getContext().setAuthentication(authToken);
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    private void responderNoAutorizado(HttpServletResponse response) throws IOException {
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        response.getWriter().write("{\"status\":401,\"message\":\"Token invalido o expirado. Volve a iniciar sesion.\"}");
     }
 }
